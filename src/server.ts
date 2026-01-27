@@ -8,22 +8,20 @@ dotenv.config();
 // Fonction de démarrage
 async function startServer() {
   try {
-    // Connexion à la base de données
-    console.log('🔌 Connecting to database...');
     await prisma.$connect();
     console.log('✅ Database connected');
 
-    // Récupération du port
     const PORT = Number(process.env.PORT) || 8080;
-    console.log('🔍 PORT from Railway:', process.env.PORT);
-    console.log('🎯 Using PORT:', PORT);
     
-    // Démarrage du serveur
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on 0.0.0.0:${PORT}`);
-      console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log('✅ Ready to accept connections');
     });
+
+    // 💓 HEARTBEAT - Log toutes les 30 secondes
+    setInterval(() => {
+      console.log('💓 Heartbeat:', new Date().toISOString(), '- Server alive');
+    }, 30000); // 30 secondes
 
   } catch (error) {
     console.error('❌ Failed to start server:', error);
