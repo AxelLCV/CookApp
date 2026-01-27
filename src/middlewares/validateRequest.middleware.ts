@@ -21,6 +21,7 @@ export interface ValidatedRequest extends Request {
 // Middleware générateur
 export const validateRequest = (schema: RequestSchema) => {
   return (req: ValidatedRequest, res: Response, next: NextFunction) => {
+    console.log('test');
     const validated: { body?: any; params?: any; query?: any } = {};
 
     try {
