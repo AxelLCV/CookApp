@@ -1,0 +1,220 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model User {
+  id         String    @id @default(cuid())
+  email      String    @unique
+  username   String    @unique
+  password   String
+  roles      Role[] 
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  recipes    Recipe[]
+
+  userRecipes    UserRecipe[]
+  userUstensils  UserUstensil[]
+  userIngredients UserIngredient[]
+
+  @@map("users")
+}
+
+model Recipe {
+  id              Int        @id @default(autoincrement())
+  name            String     
+  slug            String     @unique
+  images          String[]
+  description     String? 
+  part            Int     
+  note            Float?  
+  preparationTime Int?       @map("preparation_time")
+  cookingTime     Int?       @map("cooking_time")
+  restTime        Int?       @map("rest_time")
+  stage           String[]  
+  createdAt       DateTime   @default(now()) @map("created_at")
+  modifiedAt      DateTime?  @map("modified_at")
+
+  author    User   @relation(fields: [authorId], references: [id])
+  authorId  String @map("author_id")
+
+  wines       RecipeWine[]
+  tags        RecipeTag[]
+  ustensils   RecipeUstensil[]
+  ingredients RecipeIngredient[]
+  userRecipes UserRecipe[]
+
+  @@map("recipes")
+}
+
+model Ingredient {
+  id           Int        @id @default(autoincrement())
+  name         String    
+  unit         Unit       @relation(fields: [unitId], references: [id])
+  unitId       Int        @map("unit_id")
+  department   Department @relation(fields: [departmentId], references: [id])
+  departmentId Int        @map("department_id")
+
+  recipes     RecipeIngredient[]
+  users       UserIngredient[]
+
+  @@map("ingredients")
+}
+
+model Unit {
+  id          Int          @id @default(autoincrement())
+  name        String       
+  ingredients Ingredient[] 
+
+  @@map("units")
+}
+
+model Department {
+  id          Int          @id @default(autoincrement())
+  name        String       
+  ingredients Ingredient[]
+
+  @@map("departments")
+}
+
+model Ustensil {
+  id   Int       @id @default(autoincrement())
+  name String   
+
+  recipes     RecipeUstensil[]
+  users       UserUstensil[]
+
+  @@map("ustensils")
+}
+
+model Tag {
+  id         Int       @id @default(autoincrement())
+  name       String
+  category   Category  @relation(fields: [categoryId], references: [id])
+  categoryId Int       @map("category_id")
+
+  recipes RecipeTag[]
+
+  @@map("tags")
+}
+
+model Category {
+  id   Int   @id @default(autoincrement())
+  name String
+
+  tags Tag[]
+
+  @@map("categories")
+}
+
+model Wine {
+  id      Int    @id @default(autoincrement())
+  name    String
+  country String
+  region  String
+
+  recipes RecipeWine[]
+
+  @@map("wines")
+}
+
+model RecipeWine {
+  recipe   Recipe @relation(fields: [recipeId], references: [id])
+  recipeId Int    @map("recipe_id")
+  wine     Wine   @relation(fields: [wineId], references: [id])
+  wineId   Int    @map("wine_id")
+
+  @@id([recipeId, wineId])
+  @@map("recipes_wines")
+}
+
+model RecipeTag {
+  recipe   Recipe @relation(fields: [recipeId], references: [id])
+  recipeId Int    @map("recipe_id")
+  tag      Tag    @relation(fields: [tagId], references: [id])
+  tagId    Int    @map("tag_id")
+
+  @@id([recipeId, tagId])
+  @@map("recipes_tags")
+}
+
+model RecipeUstensil {
+  recipe     Recipe    @relation(fields: [recipeId], references: [id])
+  recipeId   Int       @map("recipe_id")
+  ustensil   Ustensil  @relation(fields: [ustensilId], references: [id])
+  ustensilId Int       @map("ustensil_id")
+
+  @@id([recipeId, ustensilId])
+  @@map("recipes_ustensils")
+}
+
+model RecipeIngredient {
+  recipe       Recipe     @relation(fields: [recipeId], references: [id])
+  recipeId     Int        @map("recipe_id")
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredientId Int        @map("ingredient_id")
+
+  quantity     Int
+  conversion   Float
+
+  @@id([recipeId, ingredientId])
+  @@map("recipes_ingredients")
+}
+
+model UserRecipe {
+  user        User    @relation(fields: [userId], references: [id])
+  userId      String  @map("user_id")
+  recipe      Recipe  @relation(fields: [recipeId], references: [id])
+  recipeId    Int     @map("recipe_id")
+
+  note        Float
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  modifiedAt  DateTime? @map("modified_at")
+
+  @@id([userId, recipeId])
+  @@map("users_recipes")
+}
+
+model UserUstensil {
+  user       User      @relation(fields: [userId], references: [id])
+  userId     String    @map("user_id")
+  ustensil   Ustensil  @relation(fields: [ustensilId], references: [id])
+  ustensilId Int       @map("ustensil_id")
+
+  @@id([userId, ustensilId])
+  @@map("users_ustensils")
+}
+
+model UserIngredient {
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String     @map("user_id")
+  ingredient  Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredientId Int       @map("ingredient_id")
+
+  quantity   Int
+  conversion Float
+
+  @@id([userId, ingredientId])
+  @@map("users_ingredients")
+}

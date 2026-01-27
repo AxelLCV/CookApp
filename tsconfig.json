@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                   // Version JS générée
+    "module": "nodenext",                 // Module Node.js
+    "lib": ["ES2020"],                    // Bibliothèques disponibles
+    "outDir": "dist",                     // Où les fichiers compilés iront
+    "rootDir": "src",                     // Dossier source
+    "strict": true,                       // Active toutes les vérifications strictes
+    "moduleResolution": "nodenext",           // Résolution type Node.js
+    "esModuleInterop": true,              // Permet import/export CommonJS <-> ESM
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,                 // Ignore la vérification des types des libs (utile pour Prisma)
+    "resolveJsonModule": true,            // Permet d'importer des fichiers JSON
+    "noImplicitAny": true
+  },
+  "include": ["src"],                     // Inclut tout le code TS
+  "exclude": ["node_modules", "dist"]     // Exclut node_modules et dossier dist
+}
