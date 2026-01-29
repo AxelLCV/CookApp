@@ -14,12 +14,9 @@ export const authorize = (options: {
     if (options.model && options.ownerField && options.idParam) {
         const resourceId = req.params[options.idParam];
         if (!resourceId) return res.status(400).json({ message: "Resource ID missing" });
-        const resource = await options.model.findFirst({
+        const resource = await options.model.findUnique({
             where: {
-              OR: [
-                { id: resourceId },
-                { slug: resourceId },
-              ],
+              slug: resourceId,              
             },
         });
         if(resource && resource[options.ownerField] === req.user.id) return next();
