@@ -28,12 +28,12 @@ model User {
   email      String    @unique
   username   String    @unique
   password   String
-  roles      Role[] 
+  roles      Role[]    @default([USER])
   createdAt  DateTime  @default(now()) @map("created_at")
 
   recipes    Recipe[]
 
-  userRecipes    UserRecipe[]
+  reviews    Review[]
   userUstensils  UserUstensil[]
   userIngredients UserIngredient[]
 
@@ -62,7 +62,7 @@ model Recipe {
   tags        RecipeTag[]
   ustensils   RecipeUstensil[]
   ingredients RecipeIngredient[]
-  userRecipes UserRecipe[]
+  reviews     Review[]
 
   @@map("recipes")
 }
@@ -181,7 +181,7 @@ model RecipeIngredient {
   @@map("recipes_ingredients")
 }
 
-model UserRecipe {
+model Review {
   user        User    @relation(fields: [userId], references: [id])
   userId      String  @map("user_id")
   recipe      Recipe  @relation(fields: [recipeId], references: [id])
@@ -193,7 +193,7 @@ model UserRecipe {
   modifiedAt  DateTime? @map("modified_at")
 
   @@id([userId, recipeId])
-  @@map("users_recipes")
+  @@map("reviews")
 }
 
 model UserUstensil {
