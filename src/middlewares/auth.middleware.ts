@@ -20,7 +20,6 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
         
         next();
     } catch (error) {
-        //return res.status(401).json({ message: "Invalid token" });
-        next();
+        return res.status(401).json({ message: "Invalid token" });
     }               
 }; 
