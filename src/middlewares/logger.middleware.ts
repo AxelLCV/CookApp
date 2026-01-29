@@ -21,7 +21,7 @@ export const logger = (req: Request, res: Response, next: NextFunction) => {
       durationMs: duration,
 
       userId: req.user?.id,
-      role: req.user?.role,
+      roles: req.user?.roles,
 
       ip: req.ip,
       userAgent: req.headers["user-agent"],
