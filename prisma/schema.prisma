@@ -23,18 +23,58 @@ enum Difficulty {
   HARD
 }
 
+enum Direction {
+  ltr
+  rtl
+}
+
+enum UnitType {
+  WEIGHT
+  VOLUME
+  QUANTITY
+}
+
+model Language {
+  id          Int       @id @default(autoincrement())
+  code        String    @db.VarChar(10)
+  locale      String    @db.VarChar(10) @unique
+  nativeName  String    @db.VarChar(50) @map("native_name")
+  latinName   String    @db.VarChar(50) @map("latin_name")
+  direction   Direction @default(ltr)
+  isActive    Boolean   @default(true)
+  fallback    String?   @db.VarChar(10)
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt      @map("updated_at")
+
+  users                  User[]
+  recipeTranslations     RecipeTranslation[]
+  ingredientTranslations IngredientTranslation[]
+  unitTranslations       UnitTranslation[]
+  departmentTranslations DepartmentTranslation[]
+  ustensilTranslations   UstensilTranslation[]
+  tagTranslations        TagTranslation[]
+  categoryTranslations   CategoryTranslation[]
+  wineTranslations       WineTranslation[]
+  reviews                Review[]
+
+  @@map("languages")
+}
+
+
 model User {
   id         String    @id @default(cuid())
   email      String    @unique
   username   String    @unique
   password   String
+  language   Language  @relation(fields: [languageId], references: [id])
+  languageId Int       @map("language_id")
   roles      Role[]    @default([USER])
   createdAt  DateTime  @default(now()) @map("created_at")
 
-  recipes    Recipe[]
-
-  reviews    Review[]
-  userUstensils  UserUstensil[]
+  recipes         Recipe[]
+  reviews         Review[]
+  userUstensils   UserUstensil[]
   userIngredients UserIngredient[]
 
   @@map("users")
@@ -42,100 +82,229 @@ model User {
 
 model Recipe {
   id              Int        @id @default(autoincrement())
-  name            String     
   slug            String     @unique
   images          String[]
-  description     String? 
   part            Int     
   note            Float?  
   preparationTime Int?       @map("preparation_time")
   cookingTime     Int?       @map("cooking_time")
   restTime        Int?       @map("rest_time")
-  stage           String[]  
+  isPublished     Boolean    @default(true)
   createdAt       DateTime   @default(now()) @map("created_at")
   modifiedAt      DateTime?  @map("modified_at")
 
   author    User   @relation(fields: [authorId], references: [id])
   authorId  String @map("author_id")
 
-  wines       RecipeWine[]
-  tags        RecipeTag[]
-  ustensils   RecipeUstensil[]
-  ingredients RecipeIngredient[]
-  reviews     Review[]
+  wines        RecipeWine[]
+  tags         RecipeTag[]
+  ustensils    RecipeUstensil[]
+  ingredients  RecipeIngredient[]
+  reviews      Review[]
+  translations RecipeTranslation[]
 
   @@map("recipes")
 }
 
+model RecipeTranslation {
+  id              Int        @id @default(autoincrement())
+  name            String
+  description     String? 
+  stage           String[]  
+  language        Language   @relation(fields: [languageId], references: [id])
+  languageId      Int        @map("language_id")
+  recipe          Recipe     @relation(fields: [recipeId], references: [id])
+  recipeId        Int        @map("recipe_id")
+
+  @@unique([recipeId, languageId])
+  @@map("recipes_translations")
+}
+
 model Ingredient {
   id           Int        @id @default(autoincrement())
-  name         String    
-  unit         Unit       @relation(fields: [unitId], references: [id])
-  unitId       Int        @map("unit_id")
   department   Department @relation(fields: [departmentId], references: [id])
   departmentId Int        @map("department_id")
+  density      Float?
+  averageWeight Float?    @map("average_weight")
 
-  recipes     RecipeIngredient[]
-  users       UserIngredient[]
+  recipes      RecipeIngredient[]
+  users        UserIngredient[]
+  translations IngredientTranslation[]
+  units        IngredientUnit[]
 
   @@map("ingredients")
 }
 
+model IngredientTranslation {
+  id              Int        @id @default(autoincrement())
+  name            String
+  language        Language   @relation(fields: [languageId], references: [id])
+  languageId      Int        @map("language_id")
+  ingredient      Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredientId    Int        @map("ingredient_id")
+
+  @@unique([ingredientId, languageId])
+  @@map("ingredients_translations")
+}
+
 model Unit {
   id          Int          @id @default(autoincrement())
-  name        String       
-  ingredients Ingredient[] 
+  type        UnitType
+
+  ingredients      IngredientUnit[]
+  recipeIngredients RecipeIngredient[]
+  userIngredients   UserIngredient[]
+  translations      UnitTranslation[]
+
+  conversionsFrom   ConversionUnit[] @relation("Base")
+  conversionsTo     ConversionUnit[] @relation("Target")
 
   @@map("units")
 }
 
+model UnitTranslation {
+  id              Int        @id @default(autoincrement())
+  name            String
+  language        Language   @relation(fields: [languageId], references: [id])
+  languageId      Int        @map("language_id")
+  unit            Unit @relation(fields: [unitId], references: [id])
+  unitId          Int        @map("unit_id")
+
+  @@unique([unitId, languageId])
+  @@map("units_translations")
+}
+
+model ConversionUnit {
+  base          Unit @relation("Base", fields: [baseId], references: [id])
+  baseId        Int    @map("base_id")
+  target        Unit  @relation("Target", fields: [targetId], references: [id])
+  targetId      Int   @map("target_id")
+
+  factor        Float
+
+  @@id([baseId, targetId])
+  @@map("conversions_units")
+}
+
+model IngredientUnit {
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredientId Int        @map("ingredient_id")
+  unit         Unit       @relation(fields: [unitId], references: [id])
+  unitId       Int        @map("unit_id")
+  
+  isDefault    Boolean @default(false) @map("is_default")
+
+  @@id([ingredientId, unitId])
+  @@map("ingredients_units")
+}
+
 model Department {
   id          Int          @id @default(autoincrement())
-  name        String       
   ingredients Ingredient[]
+  translations DepartmentTranslation[]
 
   @@map("departments")
 }
 
+model DepartmentTranslation {
+  id              Int        @id @default(autoincrement())
+  name            String
+  language        Language   @relation(fields: [languageId], references: [id])
+  languageId      Int        @map("language_id")
+  department      Department @relation(fields: [departmentId], references: [id])
+  departmentId          Int        @map("department_id")
+
+  @@unique([departmentId, languageId])
+  @@map("departments_translations")
+}
+
 model Ustensil {
   id   Int       @id @default(autoincrement())
-  name String   
 
   recipes     RecipeUstensil[]
   users       UserUstensil[]
+  translations UstensilTranslation[]
 
   @@map("ustensils")
 }
 
+model UstensilTranslation {
+  id              Int        @id @default(autoincrement())
+  name            String
+  language        Language   @relation(fields: [languageId], references: [id])
+  languageId      Int        @map("language_id")
+  ustensil        Ustensil @relation(fields: [ustensilId], references: [id])
+  ustensilId      Int        @map("ustensil_id")
+
+  @@unique([ustensilId, languageId])
+  @@map("ustensils_translations")
+}
+
 model Tag {
   id         Int       @id @default(autoincrement())
-  name       String
   category   Category  @relation(fields: [categoryId], references: [id])
   categoryId Int       @map("category_id")
 
   recipes RecipeTag[]
+  translations TagTranslation[]
 
   @@map("tags")
 }
 
+model TagTranslation {
+  id              Int        @id @default(autoincrement())
+  name            String
+  language        Language   @relation(fields: [languageId], references: [id])
+  languageId      Int        @map("language_id")
+  tag             Tag @relation(fields: [tagId], references: [id])
+  tagId           Int        @map("tag_id")
+
+  @@unique([tagId, languageId])
+  @@map("tags_translations")
+}
+
 model Category {
   id   Int   @id @default(autoincrement())
-  name String
 
   tags Tag[]
+  translations CategoryTranslation[]
 
   @@map("categories")
 }
 
+model CategoryTranslation {
+  id              Int        @id @default(autoincrement())
+  name            String
+  language        Language   @relation(fields: [languageId], references: [id])
+  languageId      Int        @map("language_id")
+  category        Category @relation(fields: [categoryId], references: [id])
+  categoryId      Int        @map("category_id")
+
+  @@unique([categoryId, languageId])
+  @@map("categories_translations")
+}
+
 model Wine {
   id      Int    @id @default(autoincrement())
-  name    String
-  country String
-  region  String
 
   recipes RecipeWine[]
+  translations WineTranslation[]
 
   @@map("wines")
+}
+
+model WineTranslation {
+  id              Int        @id @default(autoincrement())
+  name            String
+  country         String?
+  region          String?
+  language        Language   @relation(fields: [languageId], references: [id])
+  languageId      Int        @map("language_id")
+  wine            Wine @relation(fields: [wineId], references: [id])
+  wineId      Int        @map("wine_id")
+
+  @@unique([wineId, languageId])
+  @@map("wines_translations")
 }
 
 model RecipeWine {
@@ -173,9 +342,10 @@ model RecipeIngredient {
   recipeId     Int        @map("recipe_id")
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
   ingredientId Int        @map("ingredient_id")
+  unit         Unit       @relation(fields: [unitId], references: [id])
+  unitId       Int        @map("unit_id")
 
-  quantity     Int
-  conversion   Float
+  quantity     Float
 
   @@id([recipeId, ingredientId])
   @@map("recipes_ingredients")
@@ -186,6 +356,8 @@ model Review {
   userId      String  @map("user_id")
   recipe      Recipe  @relation(fields: [recipeId], references: [id])
   recipeId    Int     @map("recipe_id")
+  language   Language  @relation(fields: [languageId], references: [id])
+  languageId Int       @map("language_id")
 
   note        Float
   description String
@@ -211,9 +383,10 @@ model UserIngredient {
   userId      String     @map("user_id")
   ingredient  Ingredient @relation(fields: [ingredientId], references: [id])
   ingredientId Int       @map("ingredient_id")
+  unit         Unit      @relation(fields: [unitId], references: [id])
+  unitId       Int       @map("unit_id")
 
-  quantity   Int
-  conversion Float
+  quantity    Float
 
   @@id([userId, ingredientId])
   @@map("users_ingredients")
