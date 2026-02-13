@@ -12,19 +12,34 @@ export class RecipesService {
     if (existingSlug) {
       throw new AppError("Slug already exist", 400);
     }
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { languageId: true }
+    });
+    if (!user || !user.languageId) {
+      throw new AppError('User language not found');
+    }
     const recipe = await prisma.recipe.create({
       data: {
-        name: data.name,
         slug: data.slug,
         images: data.images,
-        description: data.description,
         part: data.part,
         note: data.note,
         preparationTime: data.preparationTime,
         cookingTime: data.cookingTime,
         restTime: data.restTime,
-        stage: data.stage,
-        authorId: userId
+        authorId: userId,
+        translations: {
+          create: {
+            name: data.name,
+            description: data.description,
+            stage: data.stage,
+            languageId: user.languageId
+          }
+        }
+      },
+      include: {
+        translations: true
       }
     });
     return { recipe };

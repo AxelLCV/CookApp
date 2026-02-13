@@ -34,7 +34,8 @@ export class AuthService {
       data: {
         username: data.username,
         email: data.email,
-        password: hashedPassword
+        password: hashedPassword,
+        languageId: data.languageId
       },
       select: {id: true, username: true, roles: true },
     });
