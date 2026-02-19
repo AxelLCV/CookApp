@@ -34,12 +34,10 @@ export class AuthService {
       data: {
         username: data.username,
         email: data.email,
-        password: hashedPassword,
-        languageId: data.languageId
+        password: hashedPassword
       },
       select: {id: true, username: true, roles: true },
     });
-
     const token = jwt.sign(
       { id: user.id, roles: user.roles },
       secretKey,
@@ -80,4 +78,16 @@ export class AuthService {
 
     return { user: safeUser, token };
   }
+
+  static async userInfo(userId: string){
+    if (!userId)
+    {
+      throw new AppError("No authentified", 401);
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: userId},
+    });
+    return user;
+  }
 }
+

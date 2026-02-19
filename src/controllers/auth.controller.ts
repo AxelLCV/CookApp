@@ -21,4 +21,15 @@ export const authController = {
       next(error);
     }
   },
+
+  userInfo: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      console.log(req.user);
+      const userId = req.user?.id as string;
+      const result = await AuthService.userInfo(userId);
+      return res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 };

@@ -7,7 +7,6 @@ export const loginSchema = {
   }),
 };
 
-// Inférer le type TypeScript
 export type LoginInput = z.infer<typeof loginSchema.body>;
 
 export const registerSchema = {
@@ -19,5 +18,4 @@ export const registerSchema = {
   }),
 };
 
-// Inférer le type TypeScript
 export type RegisterInput = z.infer<typeof registerSchema.body>;
