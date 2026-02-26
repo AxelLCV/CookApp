@@ -1,24 +1,17 @@
-// src/services/auth.service.ts
-
 import { prisma } from "../config/prisma.js";
-import { AppError } from "../errors/AppError.js";
-import { createRecipeInput, deleteRecipeInput} from "../validators/recipes.schema.js";
+import { AppError } from "../errors/appError.js";
+import { ErrorCodes } from "../errors/errorCode.js";
+import { createRecipeInput, findRecipeInput} from "../validators/recipes.schema.js";
 
 export class RecipesService {
-  static async createRecipe(data: createRecipeInput, userId: string) {
+  static async createRecipe(data: createRecipeInput, userId: string, languageId: number) {
     const existingSlug = await prisma.recipe.findUnique({
       where: { slug: data.slug },
     });
     if (existingSlug) {
-      throw new AppError("Slug already exist", 400);
+      throw new AppError(ErrorCodes.SLUG_EXIST);
     }
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { languageId: true }
-    });
-    if (!user || !user.languageId) {
-      throw new AppError('User language not found');
-    }
+
     const recipe = await prisma.recipe.create({
       data: {
         slug: data.slug,
@@ -34,7 +27,7 @@ export class RecipesService {
             name: data.name,
             description: data.description,
             stage: data.stage,
-            languageId: user.languageId
+            languageId: languageId
           }
         }
       },
@@ -44,13 +37,25 @@ export class RecipesService {
     });
     return { recipe };
   }
-  static async getRecipe() {
+
+  static async getRecipes() {
     const recipe = await prisma.recipe.findMany({
 
     });
     return { recipe };
   }
-  static async deleteRecipe(data: deleteRecipeInput) {
+
+  static async getRecipe(data: findRecipeInput) {
+    const recipe = await prisma.recipe.findUnique({
+      where: {
+        slug: data.slug
+      }
+
+    });
+    return { recipe };
+  }
+
+  static async deleteRecipe(data: findRecipeInput) {
     const recipe = await prisma.recipe.delete({
       where: {
         slug: data.slug

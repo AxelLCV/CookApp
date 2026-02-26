@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { authMiddleware, logger, errorHandler } from "./middlewares/index.js";
-import { authRoutes, recipesRoutes } from "./routes/v1/index.js";
+import { authRoutes, recipesRoutes, departmentsRoutes } from "./routes/v1/index.js";
 
 
 const allowedOrigins = [
@@ -15,14 +15,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true) // Postman ou curl
+    if (!origin) return callback(null, true)
     if (allowedOrigins.includes(origin)) {
       callback(null, true)
     } else {
       callback(new Error('Not allowed by CORS'))
     }
   },
-  credentials: true, // <- important
+  credentials: true,
 }))
 app.use(logger);
 
@@ -36,6 +36,7 @@ app.use("/auth",authRoutes);
 app.use(authMiddleware);
 
 app.use("/recipes",recipesRoutes);
+app.use("/departments",departmentsRoutes);
 
 app.use(errorHandler);
 

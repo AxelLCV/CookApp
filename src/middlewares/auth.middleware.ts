@@ -1,25 +1,44 @@
 import jsonwebtoken from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import { prisma } from "../config/prisma.js";
+import { AppError } from "../errors/appError.js";
+import { ErrorCodes } from "../errors/errorCode.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 const secretKey = process.env.JWT_SECRET_KEY as string;
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = async(req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-        return res.status(401).json({ message: "Authorization header missing" });
+        throw new AppError(ErrorCodes.AUTH_HEADER_MISSING);
     }   
     const token = authHeader.split(" ")[1];
     if (!token) {
-        return res.status(401).json({ message: "Token missing" });
+        throw new AppError(ErrorCodes.AUTH_TOKEN_MISSING);
     }
+    let decoded: { id: string; username?: string; roles?: string[] };
     try {
-        const decoded = jsonwebtoken.verify(token, secretKey);
-        req.user = decoded as { id: string; username?: string; roles?: string[] }; 
-        
-        next();
+        decoded = jsonwebtoken.verify(token, secretKey) as typeof decoded;
     } catch (error) {
-        return res.status(401).json({ message: "Invalid token" });
-    }               
+        if (error instanceof jsonwebtoken.TokenExpiredError) {
+            throw new AppError(ErrorCodes.AUTH_TOKEN_EXPIRED);
+        }
+        throw new AppError(ErrorCodes.AUTH_TOKEN_INVALID);
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { languageId: true },
+    });     
+    
+    if (!user || !user.languageId) {
+      throw new AppError(ErrorCodes.USER_LANGUAGE_NOT_FOUND);
+    } 
+
+    req.user = {
+      ...decoded,
+      languageId: user.languageId,
+    };
+
+    next();
 }; 

@@ -1,9 +1,8 @@
-// src/services/auth.service.ts
-
 import { prisma } from "../config/prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { AppError } from "../errors/AppError.js";
+import { AppError } from "../errors/appError.js";
+import { ErrorCodes } from "../errors/errorCode.js";
 import { RegisterInput, LoginInput } from "../validators/auth.schema.js";
 import dotenv from "dotenv";
 
@@ -18,14 +17,14 @@ export class AuthService {
     });
 
     if (existingEmail) {
-      throw new AppError("Email already in use", 400);
+      throw new AppError(ErrorCodes.EMAIL_EXIST);
     }
     const existingUser = await prisma.user.findUnique({
       where: { username: data.username },
     });
 
     if (existingUser) {
-      throw new AppError("Username already in use", 400);
+      throw new AppError(ErrorCodes.USERNAME_EXIST);
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -57,12 +56,12 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new AppError("Invalid email or password", 401);
+      throw new AppError(ErrorCodes.INVALID_CONNECTION);
     }
 
     const isPasswordValid = await bcrypt.compare(data.password, user.password);
     if (!isPasswordValid) {
-      throw new AppError("Invalid email or password", 401);
+      throw new AppError(ErrorCodes.INVALID_CONNECTION);
     }
 
     const token = jwt.sign(
@@ -82,7 +81,7 @@ export class AuthService {
   static async userInfo(userId: string){
     if (!userId)
     {
-      throw new AppError("No authentified", 401);
+      throw new AppError(ErrorCodes.UNAUTHENTIFIED);
     }
     const user = await prisma.user.findUnique({
       where: { id: userId},

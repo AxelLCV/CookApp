@@ -11,6 +11,7 @@ declare module "express-serve-static-core" {
       id: string;
       username?: string;
       roles?: string[];
+      languageId: number;
     };
   }
 }
