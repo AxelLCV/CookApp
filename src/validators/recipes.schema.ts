@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createRecipeSchema = {
+export const createSchema = {
   body: z.object({
     name: z.string(),
     description: z.string().optional(),
@@ -16,12 +16,20 @@ export const createRecipeSchema = {
   }),
 };
 
-export type createRecipeInput = z.infer<typeof createRecipeSchema.body>;
+export type CreateInput = z.infer<typeof createSchema.body>;
 
-export const findRecipeSchema = {
+export const getSchema = {
   params: z.object({
     slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must contain only lowercase letters (a–z), numbers (0–9), and hyphens (-) ")
   }),
 };
 
-export type findRecipeInput = z.infer<typeof findRecipeSchema.params>;
+export type GetInput = z.infer<typeof getSchema.params>;
+
+export const deleteSchema = {
+  params: z.object({
+    slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must contain only lowercase letters (a–z), numbers (0–9), and hyphens (-) ")
+  }),
+};
+
+export type DeleteInput = z.infer<typeof deleteSchema.params>;

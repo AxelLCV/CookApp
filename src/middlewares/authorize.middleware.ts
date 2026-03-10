@@ -9,20 +9,24 @@ export const authorize = (options: {
   idParam?: string;
 }) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user || !req.user.id) throw new AppError(ErrorCodes.UNAUTHORIZED);
-    //Role-based authorization
-    if (options.allowedRoles && req.user?.roles?.some((r: string) => options.allowedRoles!.includes(r))) return next();
-    //Ownership-based authorization
-    if (options.model && options.ownerField && options.idParam) {
-        const resourceId = req.params[options.idParam];
-        if (!resourceId) throw new AppError(ErrorCodes.RESOURCE_ID_MISSING);
-        const resource = await options.model.findUnique({
-            where: {
-              [options.idParam]: resourceId,              
-            },
-        });
-        if(resource && resource[options.ownerField] === req.user.id) return next();
-    };
-    throw new AppError(ErrorCodes.FORBIDDEN);
+    try{
+      if (!req.user || !req.user.id) throw new AppError(ErrorCodes.UNAUTHORIZED);
+      //Role-based authorization
+      if (options.allowedRoles && req.user?.roles?.some((r: string) => options.allowedRoles!.includes(r))) return next();
+      //Ownership-based authorization
+      if (options.model && options.ownerField && options.idParam) {
+          const resourceId = req.params[options.idParam];
+          if (!resourceId) throw new AppError(ErrorCodes.RESOURCE_ID_MISSING);
+          const resource = await options.model.findUnique({
+              where: {
+                [options.idParam]: resourceId,              
+              },
+          });
+          if(resource && resource[options.ownerField] === req.user.id) return next();
+      };
+      throw new AppError(ErrorCodes.FORBIDDEN);
+    }catch(error){
+      next(error);
+    }
   };
 };

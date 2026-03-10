@@ -33,7 +33,8 @@ export class AuthService {
       data: {
         username: data.username,
         email: data.email,
-        password: hashedPassword
+        password: hashedPassword,
+        roles: ["USER", "ADMIN"]
       },
       select: {id: true, username: true, roles: true },
     });

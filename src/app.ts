@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { authMiddleware, logger, errorHandler } from "./middlewares/index.js";
-import { authRoutes, recipesRoutes, departmentsRoutes } from "./routes/v1/index.js";
+import { authRoutes, recipesRoutes, departmentsRoutes, ingredientsRoutes, ustensilsRoutes } from "./routes/v1/index.js";
 
 
 const allowedOrigins = [
@@ -37,6 +37,8 @@ app.use(authMiddleware);
 
 app.use("/recipes",recipesRoutes);
 app.use("/departments",departmentsRoutes);
+app.use("/ingredients",ingredientsRoutes);
+app.use("/ustensils",ustensilsRoutes);
 
 app.use(errorHandler);
 

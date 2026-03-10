@@ -1,9 +1,9 @@
 import { prisma } from "../config/prisma.js";
-import { CreateInput, GetManyInput, DeleteInput } from "../validators/departments.schema.js";
+import { CreateInput, GetManyInput, DeleteInput} from "../validators/ustensils.schema.js";
 
-export class DepartmentsService {
+export class IngredientsService {
   static async create(data: CreateInput, languageId: number) {
-    const result = await prisma.department.create({
+    const result = await prisma.ustensil.create({
       data: {
         translations: {
           create: {
@@ -20,7 +20,7 @@ export class DepartmentsService {
   }
 
   static async getMany(query: GetManyInput, languageId: number) {
-    const result = await prisma.department.findMany({
+    const result = await prisma.ustensil.findMany({
       where: query.search ? {
         translations: {
           some: {
@@ -41,12 +41,12 @@ export class DepartmentsService {
   }
 
   static async delete(data: DeleteInput) {
-      const result = await prisma.department.delete({
-        where: {
-          id: data.id
-        }
-        
-      });
-      return { result };
-    }
+    const result = await prisma.ustensil.delete({
+      where: {
+        id: data.id
+      }
+      
+    });
+    return { result };
+  }
 }

@@ -1,10 +1,10 @@
 import { prisma } from "../config/prisma.js";
 import { AppError } from "../errors/appError.js";
 import { ErrorCodes } from "../errors/errorCode.js";
-import { createRecipeInput, findRecipeInput} from "../validators/recipes.schema.js";
+import { CreateInput, GetInput, DeleteInput} from "../validators/recipes.schema.js";
 
 export class RecipesService {
-  static async createRecipe(data: createRecipeInput, userId: string, languageId: number) {
+  static async create(data: CreateInput, userId: string, languageId: number) {
     const existingSlug = await prisma.recipe.findUnique({
       where: { slug: data.slug },
     });
@@ -12,7 +12,7 @@ export class RecipesService {
       throw new AppError(ErrorCodes.SLUG_EXIST);
     }
 
-    const recipe = await prisma.recipe.create({
+    const result = await prisma.recipe.create({
       data: {
         slug: data.slug,
         images: data.images,
@@ -35,33 +35,33 @@ export class RecipesService {
         translations: true
       }
     });
-    return { recipe };
+    return { result };
   }
 
-  static async getRecipes() {
-    const recipe = await prisma.recipe.findMany({
+  static async getMany() {
+    const result = await prisma.recipe.findMany({
 
     });
-    return { recipe };
+    return { result };
   }
 
-  static async getRecipe(data: findRecipeInput) {
-    const recipe = await prisma.recipe.findUnique({
+  static async get(data: GetInput) {
+    const result = await prisma.recipe.findUnique({
       where: {
         slug: data.slug
       }
 
     });
-    return { recipe };
+    return { result };
   }
 
-  static async deleteRecipe(data: findRecipeInput) {
-    const recipe = await prisma.recipe.delete({
+  static async delete(data: DeleteInput) {
+    const result = await prisma.recipe.delete({
       where: {
         slug: data.slug
       }
       
     });
-    return { recipe };
+    return { result };
   }
 }

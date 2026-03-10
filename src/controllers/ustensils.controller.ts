@@ -1,13 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { RecipesService } from "../services/recipes.service.js";
+import { UstensilsService } from "../services/ustensils.service.js";
 
-export const recipesController = {
+export const ustensilsController = {
   create: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const input = req.validated!.body;
-      const userId = req.user?.id as string;
       const languageId = req.user?.languageId as number;
-      const result = await RecipesService.create(input, userId, languageId);
+      const result = await UstensilsService.create(input, languageId);
       return res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -16,17 +15,10 @@ export const recipesController = {
 
   getMany: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await RecipesService.getMany();
-      return res.status(201).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  get: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const input = req.validated!.params;
-      const result = await RecipesService.get(input);
+      console.log(req.validated!)
+      const input = req.validated!.query;
+      const languageId = req.user?.languageId as number;
+      const result = await UstensilsService.getMany(input, languageId);
       return res.status(201).json(result);
     } catch (error) {
       next(error);
@@ -36,7 +28,7 @@ export const recipesController = {
   delete: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const input = req.validated!.params;
-      const result = await RecipesService.delete(input);
+      const result = await UstensilsService.delete(input);
       return res.status(201).json(result);
     } catch (error) {
       next(error);

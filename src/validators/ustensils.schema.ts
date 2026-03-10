@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const createSchema = {
   body: z.object({
-    name: z.string()
+    name: z.string(),
   }),
 };
 

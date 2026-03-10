@@ -1,19 +1,28 @@
 import { z } from "zod";
 
-export const createIngredientSchema = {
+export const createSchema = {
   body: z.object({
     name: z.string(),
-    description: z.string().optional(),
-    stage: z.array(z.string()),
-    slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must contain only lowercase letters (a–z), numbers (0–9), and hyphens (-) "),
-    images: z.array(z.string()).optional(),
-    part: z.number().int(),
-    note: z.number().gte(0).lte(5).optional(),
-    preparationTime: z.number().int().optional(),
-    cookingTime: z.number().int().optional(),
-    restTime: z.number().int().optional(),
-    isPublished: z.boolean().optional(),
+    departmentId: z.number(),
+    density: z.number().optional(),
+    averageWeight: z.number().optional(),
   }),
 };
 
-export type createIngredientInput = z.infer<typeof createIngredientSchema.body>;
+export type CreateInput = z.infer<typeof createSchema.body>;
+
+export const getManySchema = {
+  query: z.object({
+    search: z.string().optional()
+  }),
+};
+
+export type GetManyInput = z.infer<typeof getManySchema.query>;
+
+export const deleteSchema = {
+  params: z.object({
+    id: z.number().optional()
+  }),
+};
+
+export type DeleteInput = z.infer<typeof deleteSchema.params>;
