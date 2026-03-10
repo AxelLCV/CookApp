@@ -1,7 +1,7 @@
 import { prisma } from "../config/prisma.js";
 import { CreateInput, GetManyInput, DeleteInput} from "../validators/ustensils.schema.js";
 
-export class IngredientsService {
+export class UstensilsService {
   static async create(data: CreateInput, languageId: number) {
     const result = await prisma.ustensil.create({
       data: {
