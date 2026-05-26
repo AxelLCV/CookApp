@@ -301,7 +301,7 @@ model WineTranslation {
   language   Language @relation(fields: [languageId], references: [id])
   languageId Int      @map("language_id")
   wine       Wine     @relation(fields: [wineId], references: [id])
-  wineId     Int      @map("wine_id")
+  wineId     Int      @map("wine_id") 
 
   @@unique([wineId, languageId])
   @@map("wines_translations")
