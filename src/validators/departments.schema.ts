@@ -18,7 +18,7 @@ export type GetManyInput = z.infer<typeof getManySchema.query>;
 
 export const deleteSchema = {
   params: z.object({
-    id: z.number().optional()
+    id: z.coerce.number()
   }),
 };
 

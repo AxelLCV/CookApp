@@ -1,45 +1,34 @@
 import { Request, Response, NextFunction } from "express";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { prisma } from "../config/prisma.js";
+import { RecipeRepository } from "../repositories/recipe.repository.js";
 import { RecipesService } from "../services/recipes.service.js";
+const recipesService = new RecipesService(new RecipeRepository(prisma));
 
 export const recipesController = {
-  create: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const input = req.validated!.body;
-      const userId = req.user?.id as string;
-      const languageId = req.user?.languageId as number;
-      const result = await RecipesService.create(input, userId, languageId);
-      return res.status(201).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
+  create: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const input = req.validated!.body;
+    const userId = req.user?.id as string;
+    const languageId = req.user?.languageId as number;
+    const result = await recipesService.create(input, userId, languageId);
+    return res.status(201).json(result);
+  }),
 
-  getMany: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const result = await RecipesService.getMany();
-      return res.status(201).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
+  getMany: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const input = req.validated?.query;
+    const result = await recipesService.getMany(input);
+    return res.status(200).json(result);
+  }),
 
-  get: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const input = req.validated!.params;
-      const result = await RecipesService.get(input);
-      return res.status(201).json(result);
-    } catch (error) {
-      next(error);
-    }
-  },
+  get: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const input = req.validated!.params;
+    const result = await recipesService.get(input);
+    return res.status(200).json(result);
+  }),
 
-  delete: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const input = req.validated!.params;
-      const result = await RecipesService.delete(input);
-      return res.status(201).json(result);
-    } catch (error) {
-      next(error);
-    }
-  }
+  delete: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const input = req.validated!.params;
+    await recipesService.delete(input);
+    return res.status(204).send();
+  })
 };

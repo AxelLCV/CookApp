@@ -1,29 +1,26 @@
-import { prisma } from "../config/prisma.js";
+import { IIngredientRepository } from "../interfaces/ingredient.repository.interface.js";
 import { CreateInput, GetManyInput, DeleteInput} from "../validators/ingredients.schema.js";
 
 export class IngredientsService {
-  static async create(data: CreateInput, languageId: number) {
-    const result = await prisma.ingredient.create({
-      data: {
-        departmentId: data.departmentId,
-        density: data.density,
-        averageWeight: data.averageWeight,
-        translations: {
-          create: {
-            name: data.name,
-            languageId: languageId
-          }
+  constructor(private repo: IIngredientRepository) {}
+
+  async create(data: CreateInput, languageId: number) {
+    const result = await this.repo.create({
+      departmentId: data.departmentId,
+      density: data.density,
+      averageWeight: data.averageWeight,
+      translations: {
+        create: {
+          name: data.name,
+          languageId: languageId
         }
-      },
-      include: {
-        translations: true
       }
     });
     return { result };
   }
 
-  static async getMany(query: GetManyInput, languageId: number) {
-    const result = await prisma.ingredient.findMany({
+  async getMany(query: GetManyInput, languageId: number) {
+    const result = await this.repo.findMany({
       where: query.search ? {
         translations: {
           some: {
@@ -38,17 +35,14 @@ export class IngredientsService {
           select: { name: true },
           where: { languageId: languageId }
         }
-      } 
+      }
     });
     return { result };
   }
 
-  static async delete(data: DeleteInput) {
-    const result = await prisma.ingredient.delete({
-      where: {
-        id: data.id
-      }
-      
+  async delete(data: DeleteInput) {
+    const result = await this.repo.delete({
+      id: data.id
     });
     return { result };
   }

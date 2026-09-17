@@ -1,14 +1,16 @@
-import { IDepartmentRepository } from "../interfaces/department.repository.interface.js";
-import { CreateInput, GetManyInput, DeleteInput } from "../validators/departments.schema.js";
+import { IWineRepository } from "../interfaces/wine.repository.interface.js";
+import { CreateInput, GetManyInput, DeleteInput } from "../validators/wines.schema.js";
 
-export class DepartmentsService {
-  constructor(private repo: IDepartmentRepository) {}
+export class WinesService {
+  constructor(private repo: IWineRepository) {}
 
   async create(data: CreateInput, languageId: number) {
     const result = await this.repo.create({
       translations: {
         create: {
           name: data.name,
+          country: data.country,
+          region: data.region,
           languageId: languageId
         }
       }
@@ -29,7 +31,7 @@ export class DepartmentsService {
       select: {
         id: true,
         translations: {
-          select: { name: true },
+          select: { name: true, country: true, region: true },
           where: { languageId: languageId }
         }
       }

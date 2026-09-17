@@ -3,9 +3,8 @@ import { z } from "zod";
 export const createSchema = {
   body: z.object({
     name: z.string(),
-    departmentId: z.number(),
-    density: z.number().optional(),
-    averageWeight: z.number().optional(),
+    country: z.string().optional(),
+    region: z.string().optional(),
   }),
 };
 

@@ -1,11 +1,12 @@
-import { IDepartmentRepository } from "../interfaces/department.repository.interface.js";
-import { CreateInput, GetManyInput, DeleteInput } from "../validators/departments.schema.js";
+import { IUnitRepository } from "../interfaces/unit.repository.interface.js";
+import { CreateInput, GetManyInput, DeleteInput } from "../validators/units.schema.js";
 
-export class DepartmentsService {
-  constructor(private repo: IDepartmentRepository) {}
+export class UnitsService {
+  constructor(private repo: IUnitRepository) {}
 
   async create(data: CreateInput, languageId: number) {
     const result = await this.repo.create({
+      type: data.type,
       translations: {
         create: {
           name: data.name,
@@ -28,6 +29,7 @@ export class DepartmentsService {
       } : undefined,
       select: {
         id: true,
+        type: true,
         translations: {
           select: { name: true },
           where: { languageId: languageId }

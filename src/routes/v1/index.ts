@@ -3,3 +3,7 @@ export { default as recipesRoutes } from "./recipes.routes.js";
 export { default as departmentsRoutes } from "./departments.routes.js";
 export { default as ingredientsRoutes } from "./ingredients.routes.js";
 export { default as ustensilsRoutes } from "./ustensils.routes.js";
+export { default as unitsRoutes } from "./units.routes.js";
+export { default as categoriesRoutes } from "./categories.routes.js";
+export { default as tagsRoutes } from "./tags.routes.js";
+export { default as winesRoutes } from "./wines.routes.js";

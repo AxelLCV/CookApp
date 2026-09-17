@@ -23,5 +23,8 @@ export const ErrorCodes = {
 
   // Générique
   VALIDATION_ERROR:        { code: "VALIDATION_ERROR",        status: 422 },
+  RESOURCE_NOT_FOUND:      { code: "RESOURCE_NOT_FOUND",      status: 404 },
+  RESOURCE_ALREADY_EXISTS: { code: "RESOURCE_ALREADY_EXISTS", status: 409 },
+  RESOURCE_IN_USE:         { code: "RESOURCE_IN_USE",         status: 409 },
   INTERNAL_ERROR:          { code: "INTERNAL_ERROR",          status: 500 },
 } as const;

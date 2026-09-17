@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { authMiddleware, logger, errorHandler } from "./middlewares/index.js";
-import { authRoutes, recipesRoutes, departmentsRoutes, ingredientsRoutes, ustensilsRoutes } from "./routes/v1/index.js";
+import { authRoutes, recipesRoutes, departmentsRoutes, ingredientsRoutes, ustensilsRoutes, unitsRoutes, categoriesRoutes, tagsRoutes, winesRoutes } from "./routes/v1/index.js";
 
 
 const allowedOrigins = [
@@ -39,6 +39,10 @@ app.use("/recipes",recipesRoutes);
 app.use("/departments",departmentsRoutes);
 app.use("/ingredients",ingredientsRoutes);
 app.use("/ustensils",ustensilsRoutes);
+app.use("/units",unitsRoutes);
+app.use("/categories",categoriesRoutes);
+app.use("/tags",tagsRoutes);
+app.use("/wines",winesRoutes);
 
 app.use(errorHandler);
 

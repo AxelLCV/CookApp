@@ -1,8 +1,8 @@
-import { prisma } from "../config/prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { AppError } from "../errors/appError.js";
 import { ErrorCodes } from "../errors/errorCode.js";
+import { IUserRepository } from "../interfaces/user.repository.interface.js";
 import { RegisterInput, LoginInput } from "../validators/auth.schema.js";
 import dotenv from "dotenv";
 
@@ -11,32 +11,26 @@ const secretKey = process.env.JWT_SECRET_KEY as string;
 const JWT_EXPIRES_IN = "7d";
 
 export class AuthService {
-  static async register(data: RegisterInput) {
-    const existingEmail = await prisma.user.findUnique({
-      where: { email: data.email },
-    });
+  constructor(private repo: IUserRepository) {}
 
+  async register(data: RegisterInput) {
+    const existingEmail = await this.repo.findByEmail(data.email);
     if (existingEmail) {
       throw new AppError(ErrorCodes.EMAIL_EXIST);
     }
-    const existingUser = await prisma.user.findUnique({
-      where: { username: data.username },
-    });
-
+    const existingUser = await this.repo.findByUsername(data.username);
     if (existingUser) {
       throw new AppError(ErrorCodes.USERNAME_EXIST);
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    const user = await prisma.user.create({
-      data: {
-        username: data.username,
-        email: data.email,
-        password: hashedPassword,
-        roles: ["USER", "ADMIN"]
-      },
-      select: {id: true, username: true, roles: true },
+    const user = await this.repo.create({
+      username: data.username,
+      email: data.email,
+      password: hashedPassword,
+      roles: ["USER"],
+      language: { connect: { id: data.languageId } }
     });
     const token = jwt.sign(
       { id: user.id, roles: user.roles },
@@ -51,11 +45,8 @@ export class AuthService {
     return {user: safeUser, token };
   }
 
-  static async login(data: LoginInput) {
-    const user = await prisma.user.findUnique({
-      where: { email: data.email },
-    });
-
+  async login(data: LoginInput) {
+    const user = await this.repo.findByEmail(data.email);
     if (!user) {
       throw new AppError(ErrorCodes.INVALID_CONNECTION);
     }
@@ -79,15 +70,16 @@ export class AuthService {
     return { user: safeUser, token };
   }
 
-  static async userInfo(userId: string){
+  async userInfo(userId: string){
     if (!userId)
     {
       throw new AppError(ErrorCodes.UNAUTHENTIFIED);
     }
-    const user = await prisma.user.findUnique({
-      where: { id: userId},
-    });
-    return user;
+    const user = await this.repo.findById(userId);
+    if (!user) {
+      return null;
+    }
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 }
-

@@ -1,8 +1,8 @@
-import { IDepartmentRepository } from "../interfaces/department.repository.interface.js";
-import { CreateInput, GetManyInput, DeleteInput } from "../validators/departments.schema.js";
+import { ICategoryRepository } from "../interfaces/category.repository.interface.js";
+import { CreateInput, GetManyInput, DeleteInput } from "../validators/categories.schema.js";
 
-export class DepartmentsService {
-  constructor(private repo: IDepartmentRepository) {}
+export class CategoriesService {
+  constructor(private repo: ICategoryRepository) {}
 
   async create(data: CreateInput, languageId: number) {
     const result = await this.repo.create({

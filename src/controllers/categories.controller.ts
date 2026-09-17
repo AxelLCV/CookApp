@@ -1,28 +1,28 @@
 import { Request, Response, NextFunction } from "express";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { prisma } from "../config/prisma.js";
-import { DepartmentRepository } from "../repositories/department.repository.js";
-import { DepartmentsService } from "../services/departments.service.js";
-const departmentsService = new DepartmentsService(new DepartmentRepository(prisma));
+import { CategoryRepository } from "../repositories/category.repository.js";
+import { CategoriesService } from "../services/categories.service.js";
+const categoriesService = new CategoriesService(new CategoryRepository(prisma));
 
-export const departmentsController = {
+export const categoriesController = {
   create: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const input = req.validated!.body;
     const languageId = req.user?.languageId as number;
-    const result = await departmentsService.create(input, languageId);
+    const result = await categoriesService.create(input, languageId);
     return res.status(201).json(result);
   }),
 
   getMany: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const input = req.validated!.query;
     const languageId = req.user?.languageId as number;
-    const result = await departmentsService.getMany(input, languageId);
+    const result = await categoriesService.getMany(input, languageId);
     return res.status(200).json(result);
   }),
 
   delete: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const input = req.validated!.params;
-    await departmentsService.delete(input);
+    await categoriesService.delete(input);
     return res.status(204).send();
   })
 };

@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -48,18 +45,20 @@ model Language {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  users                  User[]
-  recipeTranslations     RecipeTranslation[]
-  ingredientTranslations IngredientTranslation[]
-  unitTranslations       UnitTranslation[]
-  departmentTranslations DepartmentTranslation[]
-  ustensilTranslations   UstensilTranslation[]
-  tagTranslations        TagTranslation[]
-  categoryTranslations   CategoryTranslation[]
-  wineTranslations       WineTranslation[]
-  reviews                Review[]
+  users                  User[]                  @relation("UserLanguage")
+  recipeTranslations     RecipeTranslation[]     @relation("RecipeTranslationLanguage")
+  ingredientTranslations IngredientTranslation[] @relation("IngredientTranslationLanguage")
+  unitTranslations       UnitTranslation[]       @relation("UnitTranslationLanguage")
+  departmentTranslations DepartmentTranslation[] @relation("DepartmentTranslationLanguage")
+  ustensilTranslations   UstensilTranslation[]   @relation("UstensilTranslationLanguage")
+  tagTranslations        TagTranslation[]        @relation("TagTranslationLanguage")
+  categoryTranslations   CategoryTranslation[]   @relation("CategoryTranslationLanguage")
+  wineTranslations       WineTranslation[]       @relation("WineTranslationLanguage")
+  reviews                Review[]                @relation("ReviewLanguage")
 
   @@map("languages")
+  @@index([code])
+  @@index([locale])
 }
 
 model User {
@@ -67,17 +66,20 @@ model User {
   email      String    @unique
   username   String    @unique
   password   String
-  language   Language? @relation(fields: [languageId], references: [id])
+  language   Language? @relation("UserLanguage", fields: [languageId], references: [id])
   languageId Int?      @map("language_id")
   roles      Role[]    @default([USER])
   createdAt  DateTime  @default(now()) @map("created_at")
 
-  recipes         Recipe[]
-  reviews         Review[]
-  userUstensils   UserUstensil[]
-  userIngredients UserIngredient[]
+  recipes         Recipe[]                @relation("RecipeAuthor")
+  reviews         Review[]                @relation("ReviewUser")
+  userUstensils   UserUstensil[]          @relation("UserUstensil")
+  userIngredients UserIngredient[]        @relation("UserIngredient")
 
   @@map("users")
+  @@index([languageId])
+  @@index([email])
+  @@index([username])
 }
 
 model Recipe {
@@ -93,17 +95,21 @@ model Recipe {
   createdAt       DateTime  @default(now()) @map("created_at")
   modifiedAt      DateTime? @map("modified_at")
 
-  author   User   @relation(fields: [authorId], references: [id])
+  author   User   @relation("RecipeAuthor", fields: [authorId], references: [id])
   authorId String @map("author_id")
 
-  wines        RecipeWine[]
-  tags         RecipeTag[]
-  ustensils    RecipeUstensil[]
-  ingredients  RecipeIngredient[]
-  reviews      Review[]
-  translations RecipeTranslation[]
+  wines        RecipeWine[]        @relation("RecipeWine")
+  tags         RecipeTag[]         @relation("RecipeTag")
+  ustensils    RecipeUstensil[]    @relation("RecipeUstensil")
+  ingredients  RecipeIngredient[]  @relation("RecipeIngredient")
+  reviews      Review[]             @relation("RecipeReview")
+  translations RecipeTranslation[] @relation("RecipeTranslation")
 
   @@map("recipes")
+  @@index([authorId])
+  @@index([isPublished])
+  @@index([slug])
+  @@index([createdAt])
 }
 
 model RecipeTranslation {
@@ -111,13 +117,15 @@ model RecipeTranslation {
   name        String
   description String?
   stage       String[]
-  language    Language @relation(fields: [languageId], references: [id])
+  language    Language @relation("RecipeTranslationLanguage", fields: [languageId], references: [id])
   languageId  Int      @map("language_id")
-  recipe      Recipe   @relation(fields: [recipeId], references: [id])
+  recipe      Recipe   @relation("RecipeTranslation", fields: [recipeId], references: [id], onDelete: Cascade)
   recipeId    Int      @map("recipe_id")
 
   @@unique([recipeId, languageId])
   @@map("recipes_translations")
+  @@index([recipeId])
+  @@index([languageId])
 }
 
 model Ingredient {
@@ -127,51 +135,56 @@ model Ingredient {
   density       Float?
   averageWeight Float?     @map("average_weight")
 
-  recipes      RecipeIngredient[]
-  users        UserIngredient[]
-  translations IngredientTranslation[]
-  units        IngredientUnit[]
+  recipes      RecipeIngredient[] @relation("RecipeIngredient")
+  users        UserIngredient[]   @relation("UserIngredient")
+  translations IngredientTranslation[] @relation("IngredientTranslation")
+  units        IngredientUnit[]   @relation("IngredientUnit")
 
   @@map("ingredients")
+  @@index([departmentId])
 }
 
 model IngredientTranslation {
   id           Int        @id @default(autoincrement())
   name         String
-  language     Language   @relation(fields: [languageId], references: [id])
+  language     Language   @relation("IngredientTranslationLanguage", fields: [languageId], references: [id])
   languageId   Int        @map("language_id")
-  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredient   Ingredient @relation("IngredientTranslation", fields: [ingredientId], references: [id], onDelete: Cascade)
   ingredientId Int        @map("ingredient_id")
 
   @@unique([ingredientId, languageId])
   @@map("ingredients_translations")
+  @@index([ingredientId])
+  @@index([languageId])
 }
 
 model Unit {
   id   Int      @id @default(autoincrement())
   type UnitType
 
-  ingredients       IngredientUnit[]
-  recipeIngredients RecipeIngredient[]
-  userIngredients   UserIngredient[]
-  translations      UnitTranslation[]
-
-  conversionsFrom ConversionUnit[] @relation("Base")
-  conversionsTo   ConversionUnit[] @relation("Target")
+  ingredients       IngredientUnit[]       @relation("IngredientUnit")
+  recipeIngredients RecipeIngredient[]     @relation("RecipeIngredientUnit")
+  userIngredients   UserIngredient[]       @relation("UserIngredientUnit")
+  translations      UnitTranslation[]      @relation("UnitTranslation")
+  conversionsFrom   ConversionUnit[]       @relation("Base")
+  conversionsTo     ConversionUnit[]       @relation("Target")
 
   @@map("units")
+  @@index([type])
 }
 
 model UnitTranslation {
   id         Int      @id @default(autoincrement())
   name       String
-  language   Language @relation(fields: [languageId], references: [id])
+  language   Language @relation("UnitTranslationLanguage", fields: [languageId], references: [id])
   languageId Int      @map("language_id")
-  unit       Unit     @relation(fields: [unitId], references: [id])
+  unit       Unit     @relation("UnitTranslation", fields: [unitId], references: [id], onDelete: Cascade)
   unitId     Int      @map("unit_id")
 
   @@unique([unitId, languageId])
   @@map("units_translations")
+  @@index([unitId])
+  @@index([languageId])
 }
 
 model ConversionUnit {
@@ -179,29 +192,31 @@ model ConversionUnit {
   baseId   Int  @map("base_id")
   target   Unit @relation("Target", fields: [targetId], references: [id])
   targetId Int  @map("target_id")
-
-  factor Float
+  factor   Float
 
   @@id([baseId, targetId])
   @@map("conversions_units")
+  @@index([baseId])
+  @@index([targetId])
 }
 
 model IngredientUnit {
-  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredient   Ingredient @relation("IngredientUnit", fields: [ingredientId], references: [id])
   ingredientId Int        @map("ingredient_id")
-  unit         Unit       @relation(fields: [unitId], references: [id])
+  unit         Unit       @relation("IngredientUnit", fields: [unitId], references: [id])
   unitId       Int        @map("unit_id")
-
-  isDefault Boolean @default(false) @map("is_default")
+  isDefault    Boolean    @default(false) @map("is_default")
 
   @@id([ingredientId, unitId])
   @@map("ingredients_units")
+  @@index([ingredientId])
+  @@index([unitId])
 }
 
 model Department {
   id           Int                     @id @default(autoincrement())
   ingredients  Ingredient[]
-  translations DepartmentTranslation[]
+  translations DepartmentTranslation[] @relation("DepartmentTranslation")
 
   @@map("departments")
 }
@@ -209,21 +224,23 @@ model Department {
 model DepartmentTranslation {
   id           Int        @id @default(autoincrement())
   name         String
-  language     Language   @relation(fields: [languageId], references: [id])
+  language     Language   @relation("DepartmentTranslationLanguage", fields: [languageId], references: [id])
   languageId   Int        @map("language_id")
-  department   Department @relation(fields: [departmentId], references: [id])
+  department   Department @relation("DepartmentTranslation", fields: [departmentId], references: [id], onDelete: Cascade)
   departmentId Int        @map("department_id")
 
   @@unique([departmentId, languageId])
   @@map("departments_translations")
+  @@index([departmentId])
+  @@index([languageId])
 }
 
 model Ustensil {
   id Int @id @default(autoincrement())
 
-  recipes      RecipeUstensil[]
-  users        UserUstensil[]
-  translations UstensilTranslation[]
+  recipes      RecipeUstensil[] @relation("RecipeUstensil")
+  users        UserUstensil[]   @relation("UserUstensil")
+  translations UstensilTranslation[] @relation("UstensilTranslation")
 
   @@map("ustensils")
 }
@@ -231,13 +248,15 @@ model Ustensil {
 model UstensilTranslation {
   id         Int      @id @default(autoincrement())
   name       String
-  language   Language @relation(fields: [languageId], references: [id])
+  language   Language @relation("UstensilTranslationLanguage", fields: [languageId], references: [id])
   languageId Int      @map("language_id")
-  ustensil   Ustensil @relation(fields: [ustensilId], references: [id])
+  ustensil   Ustensil @relation("UstensilTranslation", fields: [ustensilId], references: [id], onDelete: Cascade)
   ustensilId Int      @map("ustensil_id")
 
   @@unique([ustensilId, languageId])
   @@map("ustensils_translations")
+  @@index([ustensilId])
+  @@index([languageId])
 }
 
 model Tag {
@@ -245,29 +264,32 @@ model Tag {
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int      @map("category_id")
 
-  recipes      RecipeTag[]
-  translations TagTranslation[]
+  recipes      RecipeTag[] @relation("RecipeTag")
+  translations TagTranslation[] @relation("TagTranslation")
 
   @@map("tags")
+  @@index([categoryId])
 }
 
 model TagTranslation {
   id         Int      @id @default(autoincrement())
   name       String
-  language   Language @relation(fields: [languageId], references: [id])
+  language   Language @relation("TagTranslationLanguage", fields: [languageId], references: [id])
   languageId Int      @map("language_id")
-  tag        Tag      @relation(fields: [tagId], references: [id])
+  tag        Tag      @relation("TagTranslation", fields: [tagId], references: [id], onDelete: Cascade)
   tagId      Int      @map("tag_id")
 
   @@unique([tagId, languageId])
   @@map("tags_translations")
+  @@index([tagId])
+  @@index([languageId])
 }
 
 model Category {
   id Int @id @default(autoincrement())
 
   tags         Tag[]
-  translations CategoryTranslation[]
+  translations CategoryTranslation[] @relation("CategoryTranslation")
 
   @@map("categories")
 }
@@ -275,20 +297,22 @@ model Category {
 model CategoryTranslation {
   id         Int      @id @default(autoincrement())
   name       String
-  language   Language @relation(fields: [languageId], references: [id])
+  language   Language @relation("CategoryTranslationLanguage", fields: [languageId], references: [id])
   languageId Int      @map("language_id")
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation("CategoryTranslation", fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId Int      @map("category_id")
 
   @@unique([categoryId, languageId])
   @@map("categories_translations")
+  @@index([categoryId])
+  @@index([languageId])
 }
 
 model Wine {
   id Int @id @default(autoincrement())
 
-  recipes      RecipeWine[]
-  translations WineTranslation[]
+  recipes      RecipeWine[] @relation("RecipeWine")
+  translations WineTranslation[] @relation("WineTranslation")
 
   @@map("wines")
 }
@@ -298,65 +322,75 @@ model WineTranslation {
   name       String
   country    String?
   region     String?
-  language   Language @relation(fields: [languageId], references: [id])
+  language   Language @relation("WineTranslationLanguage", fields: [languageId], references: [id])
   languageId Int      @map("language_id")
-  wine       Wine     @relation(fields: [wineId], references: [id])
-  wineId     Int      @map("wine_id") 
+  wine       Wine     @relation("WineTranslation", fields: [wineId], references: [id], onDelete: Cascade)
+  wineId     Int      @map("wine_id")
 
   @@unique([wineId, languageId])
   @@map("wines_translations")
+  @@index([wineId])
+  @@index([languageId])
 }
 
 model RecipeWine {
-  recipe   Recipe @relation(fields: [recipeId], references: [id])
+  recipe   Recipe @relation("RecipeWine", fields: [recipeId], references: [id], onDelete: Cascade)
   recipeId Int    @map("recipe_id")
-  wine     Wine   @relation(fields: [wineId], references: [id])
+  wine     Wine   @relation("RecipeWine", fields: [wineId], references: [id])
   wineId   Int    @map("wine_id")
 
   @@id([recipeId, wineId])
   @@map("recipes_wines")
+  @@index([recipeId])
+  @@index([wineId])
 }
 
 model RecipeTag {
-  recipe   Recipe @relation(fields: [recipeId], references: [id])
+  recipe   Recipe @relation("RecipeTag", fields: [recipeId], references: [id], onDelete: Cascade)
   recipeId Int    @map("recipe_id")
-  tag      Tag    @relation(fields: [tagId], references: [id])
+  tag      Tag    @relation("RecipeTag", fields: [tagId], references: [id])
   tagId    Int    @map("tag_id")
 
   @@id([recipeId, tagId])
   @@map("recipes_tags")
+  @@index([recipeId])
+  @@index([tagId])
 }
 
 model RecipeUstensil {
-  recipe     Recipe   @relation(fields: [recipeId], references: [id])
+  recipe     Recipe   @relation("RecipeUstensil", fields: [recipeId], references: [id], onDelete: Cascade)
   recipeId   Int      @map("recipe_id")
-  ustensil   Ustensil @relation(fields: [ustensilId], references: [id])
+  ustensil   Ustensil @relation("RecipeUstensil", fields: [ustensilId], references: [id])
   ustensilId Int      @map("ustensil_id")
 
   @@id([recipeId, ustensilId])
   @@map("recipes_ustensils")
+  @@index([recipeId])
+  @@index([ustensilId])
 }
 
 model RecipeIngredient {
-  recipe       Recipe     @relation(fields: [recipeId], references: [id])
+  recipe       Recipe     @relation("RecipeIngredient", fields: [recipeId], references: [id], onDelete: Cascade)
   recipeId     Int        @map("recipe_id")
-  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredient   Ingredient @relation("RecipeIngredient", fields: [ingredientId], references: [id])
   ingredientId Int        @map("ingredient_id")
-  unit         Unit       @relation(fields: [unitId], references: [id])
+  unit         Unit       @relation("RecipeIngredientUnit", fields: [unitId], references: [id])
   unitId       Int        @map("unit_id")
-
-  quantity Float
+  quantity     Float
 
   @@id([recipeId, ingredientId])
   @@map("recipes_ingredients")
+  @@index([recipeId])
+  @@index([ingredientId])
+  @@index([unitId])
 }
 
 model Review {
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation("ReviewUser", fields: [userId], references: [id])
   userId     String   @map("user_id")
-  recipe     Recipe   @relation(fields: [recipeId], references: [id])
+  recipe     Recipe   @relation("RecipeReview", fields: [recipeId], references: [id])
   recipeId   Int      @map("recipe_id")
-  language   Language @relation(fields: [languageId], references: [id])
+  language   Language @relation("ReviewLanguage", fields: [languageId], references: [id])
   languageId Int      @map("language_id")
 
   note        Float
@@ -366,28 +400,35 @@ model Review {
 
   @@id([userId, recipeId])
   @@map("reviews")
+  @@index([userId])
+  @@index([recipeId])
+  @@index([languageId])
 }
 
 model UserUstensil {
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation("UserUstensil", fields: [userId], references: [id])
   userId     String   @map("user_id")
-  ustensil   Ustensil @relation(fields: [ustensilId], references: [id])
+  ustensil   Ustensil @relation("UserUstensil", fields: [ustensilId], references: [id])
   ustensilId Int      @map("ustensil_id")
 
   @@id([userId, ustensilId])
   @@map("users_ustensils")
+  @@index([userId])
+  @@index([ustensilId])
 }
 
 model UserIngredient {
-  user         User       @relation(fields: [userId], references: [id])
+  user         User       @relation("UserIngredient", fields: [userId], references: [id])
   userId       String     @map("user_id")
-  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredient   Ingredient @relation("UserIngredient", fields: [ingredientId], references: [id])
   ingredientId Int        @map("ingredient_id")
-  unit         Unit       @relation(fields: [unitId], references: [id])
+  unit         Unit       @relation("UserIngredientUnit", fields: [unitId], references: [id])
   unitId       Int        @map("unit_id")
-
-  quantity Float
+  quantity     Float
 
   @@id([userId, ingredientId])
   @@map("users_ingredients")
+  @@index([userId])
+  @@index([ingredientId])
+  @@index([unitId])
 }
