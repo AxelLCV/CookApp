@@ -15,6 +15,8 @@ const allowedOrigins = [
 ]
 
 const app = express();
+// Railway terminates TLS at its proxy; trust its X-Forwarded-Proto so req.protocol reports https.
+app.set('trust proxy', 1);
 // Middleware configuration
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
