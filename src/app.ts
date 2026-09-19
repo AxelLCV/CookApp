@@ -8,6 +8,8 @@ const allowedOrigins = [
   // Capacitor WebView origins (Android default scheme, iOS for later)
   'https://localhost',
   'capacitor://localhost',
+  // Vite dev server, for testing the frontend in a browser against this API
+  'http://localhost:5173',
 ]
 
 const app = express();
