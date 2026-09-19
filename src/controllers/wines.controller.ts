@@ -1,28 +1,16 @@
-import { Request, Response, NextFunction } from "express";
-import { asyncHandler } from "../utils/asyncHandler.js";
 import { prisma } from "../config/prisma.js";
-import { WineRepository } from "../repositories/wine.repository.js";
+import { Wine, Prisma } from "../generated/prisma/client.js";
+import { GenericRepository } from "../repositories/generic.repository.js";
 import { WinesService } from "../services/wines.service.js";
-const winesService = new WinesService(new WineRepository(prisma));
+import { createCrudController } from "./crud.controller.factory.js";
 
-export const winesController = {
-  create: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const input = req.validated!.body;
-    const languageId = req.user?.languageId as number;
-    const result = await winesService.create(input, languageId);
-    return res.status(201).json(result);
-  }),
+const winesService = new WinesService(
+  new GenericRepository<
+    Wine,
+    Prisma.WineCreateInput | Prisma.WineUncheckedCreateInput,
+    Prisma.WineWhereUniqueInput,
+    Prisma.WineFindManyArgs
+  >(prisma.wine)
+);
 
-  getMany: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const input = req.validated!.query;
-    const languageId = req.user?.languageId as number;
-    const result = await winesService.getMany(input, languageId);
-    return res.status(200).json(result);
-  }),
-
-  delete: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const input = req.validated!.params;
-    await winesService.delete(input);
-    return res.status(204).send();
-  })
-};
+export const winesController = createCrudController(winesService);

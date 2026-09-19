@@ -75,10 +75,17 @@ export class RecipesService {
 
   async get(data: GetInput) {
     const result = await this.repo.findBySlug(data.slug);
+    if (!result) {
+      throw new AppError(ErrorCodes.RECIPE_NOT_FOUND);
+    }
     return { result };
   }
 
   async delete(data: DeleteInput) {
+    const existing = await this.repo.findBySlug(data.slug);
+    if (!existing) {
+      throw new AppError(ErrorCodes.RECIPE_NOT_FOUND);
+    }
     const result = await this.repo.delete({
       slug: data.slug
     });

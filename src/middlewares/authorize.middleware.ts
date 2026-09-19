@@ -10,7 +10,7 @@ export const authorize = (options: {
 }) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try{
-      if (!req.user || !req.user.id) throw new AppError(ErrorCodes.UNAUTHORIZED);
+      if (!req.user || !req.user.id) throw new AppError(ErrorCodes.UNAUTHENTICATED);
       //Role-based authorization
       if (options.allowedRoles && req.user?.roles?.some((r: string) => options.allowedRoles!.includes(r))) return next();
       //Ownership-based authorization

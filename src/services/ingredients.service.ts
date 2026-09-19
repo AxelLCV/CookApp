@@ -1,8 +1,17 @@
-import { IIngredientRepository } from "../interfaces/ingredient.repository.interface.js";
-import { CreateInput, GetManyInput, DeleteInput} from "../validators/ingredients.schema.js";
+import { Ingredient, Prisma } from "../generated/prisma/client.js";
+import { IGenericRepository } from "../interfaces/generic.repository.interface.js";
+import { CreateInput, GetManyInput, DeleteInput } from "../validators/ingredients.schema.js";
+import { buildSearchWhere, translationSelect } from "./crud.service.helpers.js";
+
+type IngredientRepo = IGenericRepository<
+  Ingredient,
+  Prisma.IngredientCreateInput | Prisma.IngredientUncheckedCreateInput,
+  Prisma.IngredientWhereUniqueInput,
+  Prisma.IngredientFindManyArgs
+>;
 
 export class IngredientsService {
-  constructor(private repo: IIngredientRepository) {}
+  constructor(private repo: IngredientRepo) {}
 
   async create(data: CreateInput, languageId: number) {
     const result = await this.repo.create({
@@ -21,20 +30,10 @@ export class IngredientsService {
 
   async getMany(query: GetManyInput, languageId: number) {
     const result = await this.repo.findMany({
-      where: query.search ? {
-        translations: {
-          some: {
-            name: { contains: query.search, mode: "insensitive" },
-            languageId: languageId
-          }
-        }
-      } : undefined,
+      where: buildSearchWhere(query.search, languageId),
       select: {
         id: true,
-        translations: {
-          select: { name: true },
-          where: { languageId: languageId }
-        }
+        translations: translationSelect({ name: true }, languageId)
       }
     });
     return { result };

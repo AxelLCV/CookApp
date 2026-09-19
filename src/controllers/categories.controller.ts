@@ -1,28 +1,16 @@
-import { Request, Response, NextFunction } from "express";
-import { asyncHandler } from "../utils/asyncHandler.js";
 import { prisma } from "../config/prisma.js";
-import { CategoryRepository } from "../repositories/category.repository.js";
+import { Category, Prisma } from "../generated/prisma/client.js";
+import { GenericRepository } from "../repositories/generic.repository.js";
 import { CategoriesService } from "../services/categories.service.js";
-const categoriesService = new CategoriesService(new CategoryRepository(prisma));
+import { createCrudController } from "./crud.controller.factory.js";
 
-export const categoriesController = {
-  create: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const input = req.validated!.body;
-    const languageId = req.user?.languageId as number;
-    const result = await categoriesService.create(input, languageId);
-    return res.status(201).json(result);
-  }),
+const categoriesService = new CategoriesService(
+  new GenericRepository<
+    Category,
+    Prisma.CategoryCreateInput | Prisma.CategoryUncheckedCreateInput,
+    Prisma.CategoryWhereUniqueInput,
+    Prisma.CategoryFindManyArgs
+  >(prisma.category)
+);
 
-  getMany: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const input = req.validated!.query;
-    const languageId = req.user?.languageId as number;
-    const result = await categoriesService.getMany(input, languageId);
-    return res.status(200).json(result);
-  }),
-
-  delete: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const input = req.validated!.params;
-    await categoriesService.delete(input);
-    return res.status(204).send();
-  })
-};
+export const categoriesController = createCrudController(categoriesService);

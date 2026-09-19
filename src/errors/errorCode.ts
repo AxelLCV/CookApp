@@ -1,7 +1,6 @@
 export const ErrorCodes = {
   // Auth
-  UNAUTHORIZED:            { code: "UNAUTHORIZED",            status: 401 },
-  UNAUTHENTIFIED:          { code: "UNAUTHENTIFIED",          status: 401 },
+  UNAUTHENTICATED:         { code: "UNAUTHENTICATED",         status: 401 },
   FORBIDDEN:               { code: "FORBIDDEN",               status: 403 },
   EMAIL_EXIST:             { code: "EMAIL_EXIST",             status: 403 },
   USERNAME_EXIST:          { code: "USERNAME_EXIST",          status: 403 },

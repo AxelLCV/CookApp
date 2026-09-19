@@ -1,8 +1,17 @@
-import { IUnitRepository } from "../interfaces/unit.repository.interface.js";
+import { Unit, Prisma } from "../generated/prisma/client.js";
+import { IGenericRepository } from "../interfaces/generic.repository.interface.js";
 import { CreateInput, GetManyInput, DeleteInput } from "../validators/units.schema.js";
+import { buildSearchWhere, translationSelect } from "./crud.service.helpers.js";
+
+type UnitRepo = IGenericRepository<
+  Unit,
+  Prisma.UnitCreateInput | Prisma.UnitUncheckedCreateInput,
+  Prisma.UnitWhereUniqueInput,
+  Prisma.UnitFindManyArgs
+>;
 
 export class UnitsService {
-  constructor(private repo: IUnitRepository) {}
+  constructor(private repo: UnitRepo) {}
 
   async create(data: CreateInput, languageId: number) {
     const result = await this.repo.create({
@@ -19,21 +28,11 @@ export class UnitsService {
 
   async getMany(query: GetManyInput, languageId: number) {
     const result = await this.repo.findMany({
-      where: query.search ? {
-        translations: {
-          some: {
-            name: { contains: query.search, mode: "insensitive" },
-            languageId: languageId
-          }
-        }
-      } : undefined,
+      where: buildSearchWhere(query.search, languageId),
       select: {
         id: true,
         type: true,
-        translations: {
-          select: { name: true },
-          where: { languageId: languageId }
-        }
+        translations: translationSelect({ name: true }, languageId)
       }
     });
     return { result };

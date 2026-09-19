@@ -1,8 +1,17 @@
-import { ITagRepository } from "../interfaces/tag.repository.interface.js";
+import { Tag, Prisma } from "../generated/prisma/client.js";
+import { IGenericRepository } from "../interfaces/generic.repository.interface.js";
 import { CreateInput, GetManyInput, DeleteInput } from "../validators/tags.schema.js";
+import { buildSearchWhere, translationSelect } from "./crud.service.helpers.js";
+
+type TagRepo = IGenericRepository<
+  Tag,
+  Prisma.TagCreateInput | Prisma.TagUncheckedCreateInput,
+  Prisma.TagWhereUniqueInput,
+  Prisma.TagFindManyArgs
+>;
 
 export class TagsService {
-  constructor(private repo: ITagRepository) {}
+  constructor(private repo: TagRepo) {}
 
   async create(data: CreateInput, languageId: number) {
     const result = await this.repo.create({
@@ -19,20 +28,10 @@ export class TagsService {
 
   async getMany(query: GetManyInput, languageId: number) {
     const result = await this.repo.findMany({
-      where: query.search ? {
-        translations: {
-          some: {
-            name: { contains: query.search, mode: "insensitive" },
-            languageId: languageId
-          }
-        }
-      } : undefined,
+      where: buildSearchWhere(query.search, languageId),
       select: {
         id: true,
-        translations: {
-          select: { name: true },
-          where: { languageId: languageId }
-        }
+        translations: translationSelect({ name: true }, languageId)
       }
     });
     return { result };

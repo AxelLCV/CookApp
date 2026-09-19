@@ -70,14 +70,13 @@ export class AuthService {
     return { user: safeUser, token };
   }
 
-  async userInfo(userId: string){
-    if (!userId)
-    {
-      throw new AppError(ErrorCodes.UNAUTHENTIFIED);
+  async userInfo(userId: string) {
+    if (!userId) {
+      throw new AppError(ErrorCodes.UNAUTHENTICATED);
     }
     const user = await this.repo.findById(userId);
     if (!user) {
-      return null;
+      throw new AppError(ErrorCodes.USER_NOT_FOUND);
     }
     const { password, ...safeUser } = user;
     return safeUser;

@@ -1,8 +1,17 @@
-import { IUstensilRepository } from "../interfaces/ustensil.repository.interface.js";
-import { CreateInput, GetManyInput, DeleteInput} from "../validators/ustensils.schema.js";
+import { Ustensil, Prisma } from "../generated/prisma/client.js";
+import { IGenericRepository } from "../interfaces/generic.repository.interface.js";
+import { CreateInput, GetManyInput, DeleteInput } from "../validators/ustensils.schema.js";
+import { buildSearchWhere, translationSelect } from "./crud.service.helpers.js";
+
+type UstensilRepo = IGenericRepository<
+  Ustensil,
+  Prisma.UstensilCreateInput | Prisma.UstensilUncheckedCreateInput,
+  Prisma.UstensilWhereUniqueInput,
+  Prisma.UstensilFindManyArgs
+>;
 
 export class UstensilsService {
-  constructor(private repo: IUstensilRepository) {}
+  constructor(private repo: UstensilRepo) {}
 
   async create(data: CreateInput, languageId: number) {
     const result = await this.repo.create({
@@ -18,20 +27,10 @@ export class UstensilsService {
 
   async getMany(query: GetManyInput, languageId: number) {
     const result = await this.repo.findMany({
-      where: query.search ? {
-        translations: {
-          some: {
-            name: { contains: query.search, mode: "insensitive" },
-            languageId: languageId
-          }
-        }
-      } : undefined,
+      where: buildSearchWhere(query.search, languageId),
       select: {
         id: true,
-        translations: {
-          select: { name: true },
-          where: { languageId: languageId }
-        }
+        translations: translationSelect({ name: true }, languageId)
       }
     });
     return { result };
