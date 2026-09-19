@@ -7,6 +7,9 @@ import { authRoutes, recipesRoutes, departmentsRoutes, ingredientsRoutes, ustens
 const allowedOrigins = [
   'https://cook-app-front.vercel.app',
   'http://localhost:5173',
+  // Capacitor WebView origins (Android default scheme, iOS for later)
+  'https://localhost',
+  'capacitor://localhost',
 ]
 
 const app = express();
