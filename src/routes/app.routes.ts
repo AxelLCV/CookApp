@@ -13,7 +13,8 @@ router.get("/version", (req, res) => {
     return;
   }
 
-  const latest = JSON.parse(fs.readFileSync(LATEST_FILE, "utf-8"));
+  const raw = fs.readFileSync(LATEST_FILE, "utf-8").replace(/^﻿/, "");
+  const latest = JSON.parse(raw);
   const url = `${req.protocol}://${req.get("host")}/updates/files/${latest.file}`;
   res.json({ version: latest.version, url });
 });
