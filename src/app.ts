@@ -1,7 +1,9 @@
 import express from "express";
 import cors from "cors";
+import path from "node:path";
 import { authMiddleware, logger, errorHandler } from "./middlewares/index.js";
 import { authRoutes, recipesRoutes, departmentsRoutes, ingredientsRoutes, ustensilsRoutes, unitsRoutes, categoriesRoutes, tagsRoutes, winesRoutes } from "./routes/v1/index.js";
+import appRoutes from "./routes/app.routes.js";
 
 
 const allowedOrigins = [
@@ -32,6 +34,10 @@ app.use(logger);
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
+
+// Self-hosted OTA update check + bundle files (public, no auth required)
+app.use("/updates/files", express.static(path.join(process.cwd(), "updates", "files")));
+app.use("/app", appRoutes);
 
 //Authentification routes
 app.use("/auth",authRoutes);
