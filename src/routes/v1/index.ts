@@ -7,3 +7,4 @@ export { default as unitsRoutes } from "./units.routes.js";
 export { default as categoriesRoutes } from "./categories.routes.js";
 export { default as tagsRoutes } from "./tags.routes.js";
 export { default as winesRoutes } from "./wines.routes.js";
+export { default as uploadsRoutes } from "./uploads.routes.js";

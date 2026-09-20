@@ -1,5 +1,6 @@
 // errorHandler.middleware.ts
 import { Request, Response, NextFunction } from "express";
+import multer from "multer";
 import { Prisma } from "../generated/prisma/client.js";
 import { AppError } from "../errors/appError.js";
 import { ErrorCodes } from "../errors/errorCode.js";
@@ -48,6 +49,11 @@ const mapPrismaError = (err: Error): AppError | null => {
   return null;
 };
 
+const mapMulterError = (err: Error): AppError | null => {
+  if (!(err instanceof multer.MulterError)) return null;
+  return new AppError(ErrorCodes.VALIDATION_ERROR, { message: err.message });
+};
+
 const logError = (err: Error | AppError, req: Request) => {
   const timestamp = new Date().toISOString();
   const prefix = `[${timestamp}] ${req.method} ${req.originalUrl}`;
@@ -67,7 +73,7 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  err = mapPrismaError(err) ?? err;
+  err = mapPrismaError(err) ?? mapMulterError(err) ?? err;
 
   logError(err, req);
 

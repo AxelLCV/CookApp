@@ -1,7 +1,8 @@
 import express from "express";
 import cors from "cors";
 import { authMiddleware, logger, errorHandler } from "./middlewares/index.js";
-import { authRoutes, recipesRoutes, departmentsRoutes, ingredientsRoutes, ustensilsRoutes, unitsRoutes, categoriesRoutes, tagsRoutes, winesRoutes } from "./routes/v1/index.js";
+import { UPLOADS_DIR } from "./middlewares/upload.middleware.js";
+import { authRoutes, recipesRoutes, departmentsRoutes, ingredientsRoutes, ustensilsRoutes, unitsRoutes, categoriesRoutes, tagsRoutes, winesRoutes, uploadsRoutes } from "./routes/v1/index.js";
 
 
 const allowedOrigins = [
@@ -35,6 +36,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Uploaded recipe photos are served publicly, no auth needed to view them.
+app.use("/uploads/files", express.static(UPLOADS_DIR));
+
 //Authentification routes
 app.use("/auth",authRoutes);
 
@@ -48,6 +52,7 @@ app.use("/units",unitsRoutes);
 app.use("/categories",categoriesRoutes);
 app.use("/tags",tagsRoutes);
 app.use("/wines",winesRoutes);
+app.use("/uploads",uploadsRoutes);
 
 app.use(errorHandler);
 

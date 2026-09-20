@@ -4,3 +4,6 @@ node_modules
 
 /src/generated/prisma
 dist
+
+# Local dev uploads (production uses a Railway volume mounted via UPLOADS_DIR)
+/uploads
