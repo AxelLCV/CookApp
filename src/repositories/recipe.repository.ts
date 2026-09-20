@@ -1,12 +1,28 @@
 import { PrismaClient, Prisma, Recipe } from "../generated/prisma/client.js";
 import { IRecipeRepository } from "../interfaces/recipe.repository.interface.js";
 
+export const recipeDetailInclude = {
+  translations: true,
+  ingredients: {
+    include: {
+      ingredient: { include: { translations: true } },
+      unit: { include: { translations: true } },
+    },
+  },
+  ustensils: { include: { ustensil: { include: { translations: true } } } },
+  tags: { include: { tag: { include: { translations: true } } } },
+  wines: { include: { wine: { include: { translations: true } } } },
+} satisfies Prisma.RecipeInclude;
+
+export type RecipeWithDetails = Prisma.RecipeGetPayload<{ include: typeof recipeDetailInclude }>;
+
 export class RecipeRepository implements IRecipeRepository {
   constructor(private prisma: PrismaClient) {}
 
-  findBySlug(slug: string): Promise<Recipe | null> {
+  findBySlug(slug: string): Promise<RecipeWithDetails | null> {
     return this.prisma.recipe.findUnique({
       where: { slug },
+      include: recipeDetailInclude,
     });
   }
 
