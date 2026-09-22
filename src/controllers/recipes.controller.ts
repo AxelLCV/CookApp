@@ -16,13 +16,20 @@ export const recipesController = {
 
   getMany: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const input = req.validated?.query;
-    const result = await recipesService.getMany(input);
+    const result = await recipesService.getMany(input, req.user?.id);
     return res.status(200).json(result);
   }),
 
   get: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const input = req.validated!.params;
-    const result = await recipesService.get(input);
+    const result = await recipesService.get(input, req.user?.id);
+    return res.status(200).json(result);
+  }),
+
+  toggleFavorite: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { slug } = req.validated!.params;
+    const userId = req.user!.id as string;
+    const result = await recipesService.toggleFavorite(slug, userId);
     return res.status(200).json(result);
   }),
 

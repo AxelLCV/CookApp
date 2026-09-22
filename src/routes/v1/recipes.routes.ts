@@ -9,5 +9,6 @@ const router = Router();
 router.post("/",authorize({allowedRoles: ["USER"]}),validateRequest(createSchema),recipesController.create);
 router.get("/",validateRequest(getManySchema),recipesController.getMany);
 router.get("/:slug",validateRequest(getSchema),recipesController.get);
+router.post("/:slug/favorite",validateRequest(getSchema),recipesController.toggleFavorite);
 router.delete("/:slug",authorize({allowedRoles: ["ADMIN"], model: prisma.recipe, ownerField: "authorId", idParam: "slug"}),validateRequest(deleteSchema),recipesController.delete);
 export default router;

@@ -49,18 +49,22 @@ export class RecipesService {
     return { result };
   }
 
-  async getMany(query: GetManyInput) {
-    const { page, limit, sortBy, sortOrder, ...filters } = query;
+  async getMany(query: GetManyInput, userId?: string) {
+    const { page, limit, sortBy, sortOrder, favoritedByMe, ...filters } = query;
     const skip = (page - 1) * limit;
+    const where = {
+      ...filters,
+      ...(favoritedByMe ? { favorites: { some: { userId } } } : {}),
+    };
     const [result, total] = await Promise.all([
       this.repo.findMany({
-          where: filters,
+          where,
           orderBy: sortBy ? { [sortBy]: sortOrder } : { createdAt: 'desc' },
           skip,
           take: limit,
           include: { translations: true },
         }),
-      this.repo.count({ where: filters }),
+      this.repo.count({ where }),
     ]);
     return {
     data: result,
@@ -73,12 +77,27 @@ export class RecipesService {
     };
   }
 
-  async get(data: GetInput) {
+  async get(data: GetInput, userId?: string) {
     const result = await this.repo.findBySlug(data.slug);
     if (!result) {
       throw new AppError(ErrorCodes.RECIPE_NOT_FOUND);
     }
-    return { result };
+    const isFavorited = userId ? Boolean(await this.repo.findFavorite(userId, result.id)) : false;
+    return { result: { ...result, isFavorited } };
+  }
+
+  async toggleFavorite(slug: string, userId: string) {
+    const recipe = await this.repo.findBySlug(slug);
+    if (!recipe) {
+      throw new AppError(ErrorCodes.RECIPE_NOT_FOUND);
+    }
+    const existing = await this.repo.findFavorite(userId, recipe.id);
+    if (existing) {
+      await this.repo.removeFavorite(userId, recipe.id);
+      return { isFavorited: false };
+    }
+    await this.repo.addFavorite(userId, recipe.id);
+    return { isFavorited: true };
   }
 
   async delete(data: DeleteInput) {

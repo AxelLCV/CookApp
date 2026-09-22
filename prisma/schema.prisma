@@ -73,6 +73,7 @@ model User {
 
   recipes         Recipe[]                @relation("RecipeAuthor")
   reviews         Review[]                @relation("ReviewUser")
+  favorites       Favorite[]              @relation("UserFavorite")
   userUstensils   UserUstensil[]          @relation("UserUstensil")
   userIngredients UserIngredient[]        @relation("UserIngredient")
 
@@ -103,6 +104,7 @@ model Recipe {
   ustensils    RecipeUstensil[]    @relation("RecipeUstensil")
   ingredients  RecipeIngredient[]  @relation("RecipeIngredient")
   reviews      Review[]             @relation("RecipeReview")
+  favorites    Favorite[]          @relation("RecipeFavorite")
   translations RecipeTranslation[] @relation("RecipeTranslation")
 
   @@map("recipes")
@@ -403,6 +405,20 @@ model Review {
   @@index([userId])
   @@index([recipeId])
   @@index([languageId])
+}
+
+model Favorite {
+  user     User   @relation("UserFavorite", fields: [userId], references: [id], onDelete: Cascade)
+  userId   String @map("user_id")
+  recipe   Recipe @relation("RecipeFavorite", fields: [recipeId], references: [id], onDelete: Cascade)
+  recipeId Int    @map("recipe_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([userId, recipeId])
+  @@map("favorites")
+  @@index([userId])
+  @@index([recipeId])
 }
 
 model UserUstensil {

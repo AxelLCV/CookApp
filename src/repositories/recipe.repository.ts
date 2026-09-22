@@ -50,4 +50,20 @@ export class RecipeRepository implements IRecipeRepository {
   delete(where: Prisma.RecipeWhereUniqueInput): Promise<Recipe> {
     return this.prisma.recipe.delete({ where });
   }
+
+  findFavorite(userId: string, recipeId: number) {
+    return this.prisma.favorite.findUnique({
+      where: { userId_recipeId: { userId, recipeId } },
+    });
+  }
+
+  async addFavorite(userId: string, recipeId: number): Promise<void> {
+    await this.prisma.favorite.create({ data: { userId, recipeId } });
+  }
+
+  async removeFavorite(userId: string, recipeId: number): Promise<void> {
+    await this.prisma.favorite.delete({
+      where: { userId_recipeId: { userId, recipeId } },
+    });
+  }
 }

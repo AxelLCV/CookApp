@@ -40,6 +40,8 @@ export const getManySchema = {
     limit: z.coerce.number().int().positive().max(100).default(10),
     sortBy: z.enum(['createdAt', 'note', 'preparationTime']).optional(),
     sortOrder: z.enum(['asc', 'desc']).default('desc'),
+    authorId: z.string().optional(),
+    favoritedByMe: z.coerce.boolean().optional(),
   }),
 };
 
