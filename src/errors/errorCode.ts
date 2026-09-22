@@ -20,6 +20,12 @@ export const ErrorCodes = {
   SLUG_EXIST:              { code: "SLUG_EXIST",              status: 409 },
   RECIPE_NOT_FOUND:        { code: "RECIPE_NOT_FOUND",        status: 404 },
 
+  // Household
+  HOUSEHOLD_NOT_FOUND:     { code: "HOUSEHOLD_NOT_FOUND",     status: 404 },
+  ALREADY_MEMBER:          { code: "ALREADY_MEMBER",          status: 409 },
+  NOT_MEMBER:              { code: "NOT_MEMBER",              status: 404 },
+  HOUSEHOLD_LAST_OWNER:    { code: "HOUSEHOLD_LAST_OWNER",    status: 409 },
+
   // Générique
   VALIDATION_ERROR:        { code: "VALIDATION_ERROR",        status: 422 },
   RESOURCE_NOT_FOUND:      { code: "RESOURCE_NOT_FOUND",      status: 404 },

@@ -39,6 +39,7 @@ export class AuthService {
     );
 
     const safeUser = {
+        id: user.id,
         username: user.username,
         roles: user.roles,
     };
@@ -63,6 +64,7 @@ export class AuthService {
     );
 
     const safeUser = {
+      id: user.id,
       username: user.username,
       roles: user.roles,
     };

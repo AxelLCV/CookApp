@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { authMiddleware, logger, errorHandler } from "./middlewares/index.js";
 import { UPLOADS_DIR } from "./middlewares/upload.middleware.js";
-import { authRoutes, recipesRoutes, departmentsRoutes, ingredientsRoutes, ustensilsRoutes, unitsRoutes, categoriesRoutes, tagsRoutes, winesRoutes, uploadsRoutes } from "./routes/v1/index.js";
+import { authRoutes, recipesRoutes, householdsRoutes, departmentsRoutes, ingredientsRoutes, ustensilsRoutes, unitsRoutes, categoriesRoutes, tagsRoutes, winesRoutes, uploadsRoutes } from "./routes/v1/index.js";
 
 
 const allowedOrigins = [
@@ -45,6 +45,7 @@ app.use("/auth",authRoutes);
 app.use(authMiddleware);
 
 app.use("/recipes",recipesRoutes);
+app.use("/households",householdsRoutes);
 app.use("/departments",departmentsRoutes);
 app.use("/ingredients",ingredientsRoutes);
 app.use("/ustensils",ustensilsRoutes);
