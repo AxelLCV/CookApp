@@ -1,5 +1,6 @@
 import { AppError } from "../errors/appError.js";
 import { ErrorCodes } from "../errors/errorCode.js";
+import { Recipe } from "../generated/prisma/client.js";
 import { IRecipeRepository } from "../interfaces/recipe.repository.interface.js";
 import { CreateInput, GetManyInput, GetInput, DeleteInput} from "../validators/recipes.schema.js";
 
@@ -62,12 +63,16 @@ export class RecipesService {
           orderBy: sortBy ? { [sortBy]: sortOrder } : { createdAt: 'desc' },
           skip,
           take: limit,
-          include: { translations: true },
+          include: { translations: true, favorites: userId ? { where: { userId } } : false },
         }),
       this.repo.count({ where }),
     ]);
+    const data = (result as Array<Recipe & { favorites?: unknown[] }>).map(({ favorites, ...recipe }) => ({
+      ...recipe,
+      isFavorited: Array.isArray(favorites) && favorites.length > 0,
+    }));
     return {
-    data: result,
+    data,
       meta: {
         total,
         page,
