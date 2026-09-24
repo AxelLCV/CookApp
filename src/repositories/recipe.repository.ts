@@ -1,8 +1,22 @@
 import { PrismaClient, Prisma, Recipe } from "../generated/prisma/client.js";
 import { IRecipeRepository } from "../interfaces/recipe.repository.interface.js";
 
+const subRecipeReferenceSelect = {
+  id: true,
+  slug: true,
+  part: true,
+  translations: { select: { name: true, languageId: true } },
+} satisfies Prisma.RecipeSelect;
+
 export const recipeDetailInclude = {
   translations: true,
+  steps: {
+    orderBy: { position: "asc" },
+    include: {
+      translations: true,
+      subRecipe: { select: subRecipeReferenceSelect },
+    },
+  },
   ingredients: {
     include: {
       ingredient: { include: { translations: true } },
@@ -26,11 +40,19 @@ export class RecipeRepository implements IRecipeRepository {
     });
   }
 
+  findById(id: number): Promise<RecipeWithDetails | null> {
+    return this.prisma.recipe.findUnique({
+      where: { id },
+      include: recipeDetailInclude,
+    });
+  }
+
   create(data: Prisma.RecipeCreateInput | Prisma.RecipeUncheckedCreateInput): Promise<Recipe> {
     return this.prisma.recipe.create({
       data,
       include: {
         translations: true,
+        steps: { include: { translations: true, subRecipe: { select: subRecipeReferenceSelect } } },
         ingredients: { include: { ingredient: true, unit: true } },
         ustensils: { include: { ustensil: true } },
         tags: { include: { tag: true } },

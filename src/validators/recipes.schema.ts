@@ -2,11 +2,16 @@ import { z } from "zod";
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const slugMessage = "Slug must contain only lowercase letters (a–z), numbers (0–9), and hyphens (-)";
 
+const stepSchema = z.union([
+  z.object({ type: z.literal("text"), text: z.string().min(1) }),
+  z.object({ type: z.literal("recipe"), recipeId: z.number().int() }),
+]);
+
 export const createSchema = {
   body: z.object({
     name: z.string(),
     description: z.string().optional(),
-    stage: z.array(z.string()),
+    stage: z.array(stepSchema).min(1),
     slug: z.string().regex(slugRegex, slugMessage),
     images: z.array(z.string()).optional(),
     part: z.number().int(),
@@ -42,6 +47,7 @@ export const getManySchema = {
     sortOrder: z.enum(['asc', 'desc']).default('desc'),
     authorId: z.string().optional(),
     favoritedByMe: z.coerce.boolean().optional(),
+    search: z.string().optional(),
   }),
 };
 
