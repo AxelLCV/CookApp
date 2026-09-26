@@ -1,5 +1,10 @@
 import { Household, HouseholdMember, HouseholdRole } from "../generated/prisma/client.js";
-import { HouseholdWithMembers } from "../repositories/household.repository.js";
+import {
+  HouseholdWithMembers,
+  HouseholdIngredientWithDetails,
+  HouseholdUstensilWithDetails,
+  ShoppingListItemWithDetails,
+} from "../repositories/household.repository.js";
 
 export interface IHouseholdRepository {
   create(name: string, ownerId: string): Promise<HouseholdWithMembers>;
@@ -11,4 +16,27 @@ export interface IHouseholdRepository {
   addMember(householdId: string, userId: string, role: HouseholdRole): Promise<HouseholdMember>;
   removeMember(householdId: string, userId: string): Promise<void>;
   countOwners(householdId: string): Promise<number>;
+
+  findIngredients(householdId: string): Promise<HouseholdIngredientWithDetails[]>;
+  findIngredient(householdId: string, ingredientId: number): Promise<HouseholdIngredientWithDetails | null>;
+  upsertIngredient(householdId: string, ingredientId: number, unitId: number, quantity: number): Promise<HouseholdIngredientWithDetails>;
+  removeIngredient(householdId: string, ingredientId: number): Promise<void>;
+
+  findUstensils(householdId: string): Promise<HouseholdUstensilWithDetails[]>;
+  findUstensil(householdId: string, ustensilId: number): Promise<HouseholdUstensilWithDetails | null>;
+  addUstensil(householdId: string, ustensilId: number): Promise<HouseholdUstensilWithDetails>;
+  removeUstensil(householdId: string, ustensilId: number): Promise<void>;
+
+  findShoppingListItems(householdId: string): Promise<ShoppingListItemWithDetails[]>;
+  findShoppingListItem(householdId: string, itemId: number): Promise<ShoppingListItemWithDetails | null>;
+  createShoppingListItem(
+    householdId: string,
+    addedById: string,
+    data: { ingredientId?: number; customLabel?: string; quantity?: number; unitId?: number }
+  ): Promise<ShoppingListItemWithDetails>;
+  updateShoppingListItem(
+    itemId: number,
+    data: { quantity?: number; unitId?: number; isChecked?: boolean }
+  ): Promise<ShoppingListItemWithDetails>;
+  deleteShoppingListItem(itemId: number): Promise<void>;
 }

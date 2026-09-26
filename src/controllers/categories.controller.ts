@@ -8,6 +8,7 @@ const categoriesService = new CategoriesService(
   new GenericRepository<
     Category,
     Prisma.CategoryCreateInput | Prisma.CategoryUncheckedCreateInput,
+    Prisma.CategoryUpdateInput | Prisma.CategoryUncheckedUpdateInput,
     Prisma.CategoryWhereUniqueInput,
     Prisma.CategoryFindManyArgs
   >(prisma.category)

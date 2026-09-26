@@ -8,6 +8,7 @@ const tagsService = new TagsService(
   new GenericRepository<
     Tag,
     Prisma.TagCreateInput | Prisma.TagUncheckedCreateInput,
+    Prisma.TagUpdateInput | Prisma.TagUncheckedUpdateInput,
     Prisma.TagWhereUniqueInput,
     Prisma.TagFindManyArgs
   >(prisma.tag)

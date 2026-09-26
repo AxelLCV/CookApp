@@ -7,6 +7,33 @@ export const householdMembersInclude = {
 
 export type HouseholdWithMembers = Prisma.HouseholdGetPayload<{ include: typeof householdMembersInclude }>;
 
+export const householdIngredientInclude = {
+  ingredient: { include: { translations: true, department: true } },
+  unit: { include: { translations: true } },
+} satisfies Prisma.HouseholdIngredientInclude;
+
+export type HouseholdIngredientWithDetails = Prisma.HouseholdIngredientGetPayload<{
+  include: typeof householdIngredientInclude;
+}>;
+
+export const householdUstensilInclude = {
+  ustensil: { include: { translations: true } },
+} satisfies Prisma.HouseholdUstensilInclude;
+
+export type HouseholdUstensilWithDetails = Prisma.HouseholdUstensilGetPayload<{
+  include: typeof householdUstensilInclude;
+}>;
+
+export const shoppingListItemInclude = {
+  ingredient: { include: { translations: true } },
+  unit: { include: { translations: true } },
+  addedBy: { select: { id: true, username: true } },
+} satisfies Prisma.ShoppingListItemInclude;
+
+export type ShoppingListItemWithDetails = Prisma.ShoppingListItemGetPayload<{
+  include: typeof shoppingListItemInclude;
+}>;
+
 export class HouseholdRepository implements IHouseholdRepository {
   constructor(private prisma: PrismaClient) {}
 
@@ -60,5 +87,109 @@ export class HouseholdRepository implements IHouseholdRepository {
 
   countOwners(householdId: string): Promise<number> {
     return this.prisma.householdMember.count({ where: { householdId, role: "OWNER" } });
+  }
+
+  findIngredients(householdId: string): Promise<HouseholdIngredientWithDetails[]> {
+    return this.prisma.householdIngredient.findMany({
+      where: { householdId },
+      include: householdIngredientInclude,
+    });
+  }
+
+  findIngredient(householdId: string, ingredientId: number): Promise<HouseholdIngredientWithDetails | null> {
+    return this.prisma.householdIngredient.findUnique({
+      where: { householdId_ingredientId: { householdId, ingredientId } },
+      include: householdIngredientInclude,
+    });
+  }
+
+  upsertIngredient(
+    householdId: string,
+    ingredientId: number,
+    unitId: number,
+    quantity: number
+  ): Promise<HouseholdIngredientWithDetails> {
+    return this.prisma.householdIngredient.upsert({
+      where: { householdId_ingredientId: { householdId, ingredientId } },
+      create: { householdId, ingredientId, unitId, quantity },
+      update: { unitId, quantity },
+      include: householdIngredientInclude,
+    });
+  }
+
+  async removeIngredient(householdId: string, ingredientId: number): Promise<void> {
+    await this.prisma.householdIngredient.delete({
+      where: { householdId_ingredientId: { householdId, ingredientId } },
+    });
+  }
+
+  findUstensils(householdId: string): Promise<HouseholdUstensilWithDetails[]> {
+    return this.prisma.householdUstensil.findMany({
+      where: { householdId },
+      include: householdUstensilInclude,
+    });
+  }
+
+  findUstensil(householdId: string, ustensilId: number): Promise<HouseholdUstensilWithDetails | null> {
+    return this.prisma.householdUstensil.findUnique({
+      where: { householdId_ustensilId: { householdId, ustensilId } },
+      include: householdUstensilInclude,
+    });
+  }
+
+  addUstensil(householdId: string, ustensilId: number): Promise<HouseholdUstensilWithDetails> {
+    return this.prisma.householdUstensil.upsert({
+      where: { householdId_ustensilId: { householdId, ustensilId } },
+      create: { householdId, ustensilId },
+      update: {},
+      include: householdUstensilInclude,
+    });
+  }
+
+  async removeUstensil(householdId: string, ustensilId: number): Promise<void> {
+    await this.prisma.householdUstensil.delete({
+      where: { householdId_ustensilId: { householdId, ustensilId } },
+    });
+  }
+
+  findShoppingListItems(householdId: string): Promise<ShoppingListItemWithDetails[]> {
+    return this.prisma.shoppingListItem.findMany({
+      where: { householdId },
+      include: shoppingListItemInclude,
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  findShoppingListItem(householdId: string, itemId: number): Promise<ShoppingListItemWithDetails | null> {
+    return this.prisma.shoppingListItem.findFirst({
+      where: { id: itemId, householdId },
+      include: shoppingListItemInclude,
+    });
+  }
+
+  createShoppingListItem(
+    householdId: string,
+    addedById: string,
+    data: { ingredientId?: number; customLabel?: string; quantity?: number; unitId?: number }
+  ): Promise<ShoppingListItemWithDetails> {
+    return this.prisma.shoppingListItem.create({
+      data: { householdId, addedById, ...data },
+      include: shoppingListItemInclude,
+    });
+  }
+
+  updateShoppingListItem(
+    itemId: number,
+    data: { quantity?: number; unitId?: number; isChecked?: boolean }
+  ): Promise<ShoppingListItemWithDetails> {
+    return this.prisma.shoppingListItem.update({
+      where: { id: itemId },
+      data,
+      include: shoppingListItemInclude,
+    });
+  }
+
+  async deleteShoppingListItem(itemId: number): Promise<void> {
+    await this.prisma.shoppingListItem.delete({ where: { id: itemId } });
   }
 }

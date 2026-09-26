@@ -1,11 +1,12 @@
 import { Category, Prisma } from "../generated/prisma/client.js";
 import { IGenericRepository } from "../interfaces/generic.repository.interface.js";
-import { CreateInput, GetManyInput, DeleteInput } from "../validators/categories.schema.js";
+import { CreateInput, UpdateInput, GetManyInput, DeleteInput } from "../validators/categories.schema.js";
 import { buildSearchWhere, translationSelect } from "./crud.service.helpers.js";
 
 type CategoryRepo = IGenericRepository<
   Category,
   Prisma.CategoryCreateInput | Prisma.CategoryUncheckedCreateInput,
+  Prisma.CategoryUpdateInput | Prisma.CategoryUncheckedUpdateInput,
   Prisma.CategoryWhereUniqueInput,
   Prisma.CategoryFindManyArgs
 >;
@@ -22,6 +23,22 @@ export class CategoriesService {
         }
       }
     });
+    return { result };
+  }
+
+  async update(id: number, data: UpdateInput, languageId: number) {
+    const result = await this.repo.update(
+      { id },
+      {
+        translations: data.name !== undefined ? {
+          upsert: {
+            where: { categoryId_languageId: { categoryId: id, languageId } },
+            create: { name: data.name, languageId },
+            update: { name: data.name },
+          }
+        } : undefined,
+      }
+    );
     return { result };
   }
 

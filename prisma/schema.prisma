@@ -77,10 +77,11 @@ model User {
   roles      Role[]    @default([USER])
   createdAt  DateTime  @default(now()) @map("created_at")
 
-  recipes              Recipe[]          @relation("RecipeAuthor")
-  reviews              Review[]          @relation("ReviewUser")
-  favorites            Favorite[]        @relation("UserFavorite")
-  householdMemberships HouseholdMember[] @relation("HouseholdMemberUser")
+  recipes                Recipe[]           @relation("RecipeAuthor")
+  reviews                Review[]           @relation("ReviewUser")
+  favorites              Favorite[]         @relation("UserFavorite")
+  householdMemberships   HouseholdMember[]  @relation("HouseholdMemberUser")
+  shoppingListItemsAdded ShoppingListItem[] @relation("ShoppingListItemAddedBy")
 
   @@index([languageId])
   @@index([email])
@@ -175,11 +176,13 @@ model Ingredient {
   departmentId  Int        @map("department_id")
   density       Float?
   averageWeight Float?     @map("average_weight")
+  image         String?
 
-  recipes      RecipeIngredient[]      @relation("RecipeIngredient")
-  households   HouseholdIngredient[]   @relation("HouseholdIngredient")
-  translations IngredientTranslation[] @relation("IngredientTranslation")
-  units        IngredientUnit[]        @relation("IngredientUnit")
+  recipes           RecipeIngredient[]      @relation("RecipeIngredient")
+  households        HouseholdIngredient[]   @relation("HouseholdIngredient")
+  translations      IngredientTranslation[] @relation("IngredientTranslation")
+  units             IngredientUnit[]        @relation("IngredientUnit")
+  shoppingListItems ShoppingListItem[]      @relation("ShoppingListItemIngredient")
 
   @@index([departmentId])
   @@map("ingredients")
@@ -209,6 +212,7 @@ model Unit {
   translations         UnitTranslation[]     @relation("UnitTranslation")
   conversionsFrom      ConversionUnit[]      @relation("Base")
   conversionsTo        ConversionUnit[]      @relation("Target")
+  shoppingListItems    ShoppingListItem[]    @relation("ShoppingListItemUnit")
 
   @@index([type])
   @@map("units")
@@ -277,7 +281,8 @@ model DepartmentTranslation {
 }
 
 model Ustensil {
-  id Int @id @default(autoincrement())
+  id    Int     @id @default(autoincrement())
+  image String?
 
   recipes      RecipeUstensil[]      @relation("RecipeUstensil")
   households   HouseholdUstensil[]   @relation("HouseholdUstensil")
@@ -350,7 +355,8 @@ model CategoryTranslation {
 }
 
 model Wine {
-  id Int @id @default(autoincrement())
+  id    Int     @id @default(autoincrement())
+  image String?
 
   recipes      RecipeWine[]      @relation("RecipeWine")
   translations WineTranslation[] @relation("WineTranslation")
@@ -465,9 +471,10 @@ model Household {
   name      String
   createdAt DateTime @default(now()) @map("created_at")
 
-  members     HouseholdMember[]     @relation("HouseholdMemberHousehold")
-  ustensils   HouseholdUstensil[]   @relation("HouseholdUstensilHousehold")
-  ingredients HouseholdIngredient[] @relation("HouseholdIngredientHousehold")
+  members           HouseholdMember[]     @relation("HouseholdMemberHousehold")
+  ustensils         HouseholdUstensil[]   @relation("HouseholdUstensilHousehold")
+  ingredients       HouseholdIngredient[] @relation("HouseholdIngredientHousehold")
+  shoppingListItems ShoppingListItem[]    @relation("ShoppingListItemHousehold")
 
   @@map("households")
 }
@@ -512,4 +519,30 @@ model HouseholdIngredient {
   @@index([ingredientId])
   @@index([unitId])
   @@map("households_ingredients")
+}
+
+model ShoppingListItem {
+  id          Int       @id @default(autoincrement())
+  household   Household @relation("ShoppingListItemHousehold", fields: [householdId], references: [id], onDelete: Cascade)
+  householdId String    @map("household_id")
+
+  // Either linked to a real ingredient, or a free-text item (e.g. "toothpaste")
+  ingredient   Ingredient? @relation("ShoppingListItemIngredient", fields: [ingredientId], references: [id])
+  ingredientId Int?        @map("ingredient_id")
+  customLabel  String?     @map("custom_label")
+
+  quantity Float?
+  unit     Unit?  @relation("ShoppingListItemUnit", fields: [unitId], references: [id])
+  unitId   Int?   @map("unit_id")
+
+  isChecked Boolean @default(false) @map("is_checked")
+
+  addedBy   User   @relation("ShoppingListItemAddedBy", fields: [addedById], references: [id])
+  addedById String @map("added_by_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([householdId])
+  @@index([ingredientId])
+  @@map("shopping_list_items")
 }

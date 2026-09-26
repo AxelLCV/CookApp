@@ -8,6 +8,7 @@ const winesService = new WinesService(
   new GenericRepository<
     Wine,
     Prisma.WineCreateInput | Prisma.WineUncheckedCreateInput,
+    Prisma.WineUpdateInput | Prisma.WineUncheckedUpdateInput,
     Prisma.WineWhereUniqueInput,
     Prisma.WineFindManyArgs
   >(prisma.wine)

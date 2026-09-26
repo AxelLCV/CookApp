@@ -68,3 +68,10 @@ export const deleteSchema = {
 };
 
 export type DeleteInput = z.infer<typeof deleteSchema.params>;
+
+export const updateSchema = {
+  params: getSchema.params,
+  body: createSchema.body.partial(),
+};
+
+export type UpdateInput = z.infer<typeof updateSchema.body>;

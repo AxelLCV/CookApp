@@ -4,6 +4,7 @@ export interface IRecipeRepository {
   findBySlug(slug: string): Promise<RecipeWithDetails | null>;
   findById(id: number): Promise<RecipeWithDetails | null>;
   create(data: Prisma.RecipeCreateInput | Prisma.RecipeUncheckedCreateInput): Promise<Recipe>;
+  update(id: number, data: Prisma.RecipeUpdateInput): Promise<RecipeWithDetails>;
   findMany(args: Prisma.RecipeFindManyArgs): Promise<Recipe[]>;
   count(args: Prisma.RecipeCountArgs): Promise<number>;
   delete(where: Prisma.RecipeWhereUniqueInput): Promise<Recipe>;

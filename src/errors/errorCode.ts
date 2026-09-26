@@ -19,6 +19,13 @@ export const ErrorCodes = {
   // Recipe
   SLUG_EXIST:              { code: "SLUG_EXIST",              status: 409 },
   RECIPE_NOT_FOUND:        { code: "RECIPE_NOT_FOUND",        status: 404 },
+  RECIPE_STEP_CYCLE:       { code: "RECIPE_STEP_CYCLE",       status: 409 },
+
+  // Unit
+  CONVERSION_NOT_FOUND:    { code: "CONVERSION_NOT_FOUND",    status: 404 },
+
+  // Review
+  REVIEW_NOT_FOUND:        { code: "REVIEW_NOT_FOUND",        status: 404 },
 
   // Household
   HOUSEHOLD_NOT_FOUND:     { code: "HOUSEHOLD_NOT_FOUND",     status: 404 },

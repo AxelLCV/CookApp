@@ -61,6 +61,14 @@ export class RecipeRepository implements IRecipeRepository {
     });
   }
 
+  update(id: number, data: Prisma.RecipeUpdateInput): Promise<RecipeWithDetails> {
+    return this.prisma.recipe.update({
+      where: { id },
+      data,
+      include: recipeDetailInclude,
+    });
+  }
+
   findMany(args: Prisma.RecipeFindManyArgs): Promise<Recipe[]> {
     return this.prisma.recipe.findMany(args);
   }

@@ -8,6 +8,7 @@ const departmentsService = new DepartmentsService(
   new GenericRepository<
     Department,
     Prisma.DepartmentCreateInput | Prisma.DepartmentUncheckedCreateInput,
+    Prisma.DepartmentUpdateInput | Prisma.DepartmentUncheckedUpdateInput,
     Prisma.DepartmentWhereUniqueInput,
     Prisma.DepartmentFindManyArgs
   >(prisma.department)

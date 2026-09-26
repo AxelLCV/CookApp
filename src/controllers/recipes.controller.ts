@@ -26,6 +26,14 @@ export const recipesController = {
     return res.status(200).json(result);
   }),
 
+  update: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { slug } = req.validated!.params;
+    const input = req.validated!.body;
+    const languageId = req.user!.languageId as number;
+    const result = await recipesService.update(slug, input, languageId);
+    return res.status(200).json(result);
+  }),
+
   toggleFavorite: asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { slug } = req.validated!.params;
     const userId = req.user!.id as string;

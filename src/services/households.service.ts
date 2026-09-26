@@ -2,7 +2,15 @@ import { AppError } from "../errors/appError.js";
 import { ErrorCodes } from "../errors/errorCode.js";
 import { IHouseholdRepository } from "../interfaces/household.repository.interface.js";
 import { IUserRepository } from "../interfaces/user.repository.interface.js";
-import { CreateInput, UpdateInput, AddMemberInput } from "../validators/households.schema.js";
+import {
+  CreateInput,
+  UpdateInput,
+  AddMemberInput,
+  AddIngredientInput,
+  UpdateIngredientInput,
+  AddShoppingListItemInput,
+  UpdateShoppingListItemInput,
+} from "../validators/households.schema.js";
 
 export class HouseholdsService {
   constructor(
@@ -77,6 +85,94 @@ export class HouseholdsService {
     }
 
     await this.repo.removeMember(id, targetUserId);
+  }
+
+  async listIngredients(id: string, userId: string) {
+    await this.assertMember(id, userId);
+    const data = await this.repo.findIngredients(id);
+    return { data };
+  }
+
+  async addIngredient(id: string, data: AddIngredientInput, userId: string) {
+    await this.assertMember(id, userId);
+    const result = await this.repo.upsertIngredient(id, data.ingredientId, data.unitId, data.quantity);
+    return { result };
+  }
+
+  async updateIngredient(id: string, ingredientId: number, data: UpdateIngredientInput, userId: string) {
+    await this.assertMember(id, userId);
+    const existing = await this.repo.findIngredient(id, ingredientId);
+    if (!existing) {
+      throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND);
+    }
+    const result = await this.repo.upsertIngredient(
+      id,
+      ingredientId,
+      data.unitId ?? existing.unitId,
+      data.quantity ?? existing.quantity
+    );
+    return { result };
+  }
+
+  async removeIngredient(id: string, ingredientId: number, userId: string) {
+    await this.assertMember(id, userId);
+    const existing = await this.repo.findIngredient(id, ingredientId);
+    if (!existing) {
+      throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND);
+    }
+    await this.repo.removeIngredient(id, ingredientId);
+  }
+
+  async listUstensils(id: string, userId: string) {
+    await this.assertMember(id, userId);
+    const data = await this.repo.findUstensils(id);
+    return { data };
+  }
+
+  async addUstensil(id: string, ustensilId: number, userId: string) {
+    await this.assertMember(id, userId);
+    const result = await this.repo.addUstensil(id, ustensilId);
+    return { result };
+  }
+
+  async removeUstensil(id: string, ustensilId: number, userId: string) {
+    await this.assertMember(id, userId);
+    const existing = await this.repo.findUstensil(id, ustensilId);
+    if (!existing) {
+      throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND);
+    }
+    await this.repo.removeUstensil(id, ustensilId);
+  }
+
+  async listShoppingListItems(id: string, userId: string) {
+    await this.assertMember(id, userId);
+    const data = await this.repo.findShoppingListItems(id);
+    return { data };
+  }
+
+  async addShoppingListItem(id: string, data: AddShoppingListItemInput, userId: string) {
+    await this.assertMember(id, userId);
+    const result = await this.repo.createShoppingListItem(id, userId, data);
+    return { result };
+  }
+
+  async updateShoppingListItem(id: string, itemId: number, data: UpdateShoppingListItemInput, userId: string) {
+    await this.assertMember(id, userId);
+    const existing = await this.repo.findShoppingListItem(id, itemId);
+    if (!existing) {
+      throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND);
+    }
+    const result = await this.repo.updateShoppingListItem(itemId, data);
+    return { result };
+  }
+
+  async removeShoppingListItem(id: string, itemId: number, userId: string) {
+    await this.assertMember(id, userId);
+    const existing = await this.repo.findShoppingListItem(id, itemId);
+    if (!existing) {
+      throw new AppError(ErrorCodes.RESOURCE_NOT_FOUND);
+    }
+    await this.repo.deleteShoppingListItem(itemId);
   }
 
   private async assertMember(householdId: string, userId: string) {

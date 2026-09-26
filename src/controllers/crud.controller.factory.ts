@@ -1,14 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-interface CrudService<TCreateInput, TGetManyInput, TDeleteInput> {
+interface CrudService<TCreateInput, TGetManyInput, TDeleteInput, TUpdateInput> {
   create(data: TCreateInput, languageId: number): Promise<unknown>;
   getMany(query: TGetManyInput, languageId: number): Promise<unknown>;
+  update(id: number, data: TUpdateInput, languageId: number): Promise<unknown>;
   delete(data: TDeleteInput): Promise<unknown>;
 }
 
-export function createCrudController<TCreateInput, TGetManyInput, TDeleteInput>(
-  service: CrudService<TCreateInput, TGetManyInput, TDeleteInput>
+export function createCrudController<TCreateInput, TGetManyInput, TDeleteInput, TUpdateInput = TCreateInput>(
+  service: CrudService<TCreateInput, TGetManyInput, TDeleteInput, TUpdateInput>
 ) {
   return {
     create: asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
@@ -22,6 +23,14 @@ export function createCrudController<TCreateInput, TGetManyInput, TDeleteInput>(
       const input = req.validated!.query as TGetManyInput;
       const languageId = req.user?.languageId as number;
       const result = await service.getMany(input, languageId);
+      return res.status(200).json(result);
+    }),
+
+    update: asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+      const { id } = req.validated!.params as { id: number };
+      const input = req.validated!.body as TUpdateInput;
+      const languageId = req.user?.languageId as number;
+      const result = await service.update(id, input, languageId);
       return res.status(200).json(result);
     }),
 

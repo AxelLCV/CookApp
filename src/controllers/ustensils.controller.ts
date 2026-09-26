@@ -8,6 +8,7 @@ const ustensilsService = new UstensilsService(
   new GenericRepository<
     Ustensil,
     Prisma.UstensilCreateInput | Prisma.UstensilUncheckedCreateInput,
+    Prisma.UstensilUpdateInput | Prisma.UstensilUncheckedUpdateInput,
     Prisma.UstensilWhereUniqueInput,
     Prisma.UstensilFindManyArgs
   >(prisma.ustensil)

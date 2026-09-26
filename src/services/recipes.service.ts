@@ -3,7 +3,7 @@ import { ErrorCodes } from "../errors/errorCode.js";
 import { Recipe } from "../generated/prisma/client.js";
 import { IRecipeRepository } from "../interfaces/recipe.repository.interface.js";
 import { RecipeWithDetails } from "../repositories/recipe.repository.js";
-import { CreateInput, GetManyInput, GetInput, DeleteInput} from "../validators/recipes.schema.js";
+import { CreateInput, UpdateInput, GetManyInput, GetInput, DeleteInput} from "../validators/recipes.schema.js";
 
 const MAX_STEP_DEPTH = 8;
 
@@ -79,6 +79,115 @@ export class RecipesService {
       } : undefined,
     });
     return { result };
+  }
+
+  async update(slug: string, data: UpdateInput, languageId: number) {
+    const existing = await this.repo.findBySlug(slug);
+    if (!existing) {
+      throw new AppError(ErrorCodes.RECIPE_NOT_FOUND);
+    }
+
+    if (data.slug && data.slug !== slug) {
+      const slugTaken = await this.repo.findBySlug(data.slug);
+      if (slugTaken) {
+        throw new AppError(ErrorCodes.SLUG_EXIST);
+      }
+    }
+
+    if (data.stage) {
+      const subRecipeIds = [...new Set(data.stage.filter((step) => step.type === "recipe").map((step) => step.recipeId))];
+
+      if (subRecipeIds.includes(existing.id)) {
+        throw new AppError(ErrorCodes.RECIPE_STEP_CYCLE);
+      }
+
+      if (subRecipeIds.length > 0) {
+        const found = await this.repo.findMany({ where: { id: { in: subRecipeIds } } });
+        if (found.length !== subRecipeIds.length) {
+          throw new AppError(ErrorCodes.RECIPE_NOT_FOUND);
+        }
+
+        for (const subRecipeId of subRecipeIds) {
+          if (await this.wouldCreateCycle(existing.id, subRecipeId, new Set([existing.id]))) {
+            throw new AppError(ErrorCodes.RECIPE_STEP_CYCLE);
+          }
+        }
+      }
+    }
+
+    const result = await this.repo.update(existing.id, {
+      slug: data.slug,
+      images: data.images,
+      part: data.part,
+      note: data.note,
+      preparationTime: data.preparationTime,
+      cookingTime: data.cookingTime,
+      restTime: data.restTime,
+      isPublished: data.isPublished,
+      translations: (data.name !== undefined || data.description !== undefined) ? {
+        upsert: {
+          where: { recipeId_languageId: { recipeId: existing.id, languageId } },
+          create: { name: data.name ?? "", description: data.description, languageId },
+          update: { name: data.name, description: data.description },
+        }
+      } : undefined,
+      steps: data.stage ? {
+        deleteMany: {},
+        create: data.stage.map((step, index) =>
+          step.type === "recipe"
+            ? { position: index, subRecipeId: step.recipeId }
+            : { position: index, translations: { create: { text: step.text, languageId } } }
+        ),
+      } : undefined,
+      ingredients: data.ingredients ? {
+        deleteMany: {},
+        create: data.ingredients.map((i) => ({
+          ingredientId: i.ingredientId,
+          unitId: i.unitId,
+          quantity: i.quantity,
+        }))
+      } : undefined,
+      ustensils: data.ustensils ? {
+        deleteMany: {},
+        create: data.ustensils.map((u) => ({ ustensilId: u.ustensilId }))
+      } : undefined,
+      tags: data.tags ? {
+        deleteMany: {},
+        create: data.tags.map((t) => ({ tagId: t.tagId }))
+      } : undefined,
+      wines: data.wines ? {
+        deleteMany: {},
+        create: data.wines.map((w) => ({ wineId: w.wineId }))
+      } : undefined,
+    });
+    return { result };
+  }
+
+  // Walks currentId's own sub-recipe tree looking for targetId, to check whether
+  // pointing targetId's recipe at currentId (directly or transitively) would
+  // close a loop. Used before saving edited steps, since unlike creation, an
+  // edited recipe can reference recipes that already exist and might already
+  // (transitively) reference it.
+  private async wouldCreateCycle(targetId: number, currentId: number, visited: Set<number>): Promise<boolean> {
+    if (currentId === targetId) {
+      return true;
+    }
+    if (visited.has(currentId)) {
+      return false;
+    }
+    visited.add(currentId);
+
+    const recipe = await this.repo.findById(currentId);
+    if (!recipe) {
+      return false;
+    }
+
+    for (const step of recipe.steps) {
+      if (step.subRecipe && (await this.wouldCreateCycle(targetId, step.subRecipe.id, visited))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   async getMany(query: GetManyInput, userId?: string) {
