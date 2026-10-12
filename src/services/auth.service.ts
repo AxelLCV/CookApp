@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 const secretKey = process.env.JWT_SECRET_KEY as string;
-const JWT_EXPIRES_IN = "7d";
+const JWT_EXPIRES_IN = "60d";
 
 export class AuthService {
   constructor(private repo: IUserRepository) {}
